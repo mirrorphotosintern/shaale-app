@@ -1,3 +1,6 @@
+// Stream screen - displays videos in a 2-column grid with vertical thumbnails
+// Uses FlatList with numColumns={2} for reliable grid layout
+
 import { useEffect, useState, useCallback } from "react";
 import {
   View,
@@ -16,9 +19,26 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const THUMBNAIL_WIDTH = (SCREEN_WIDTH - 48) / 2;
-const THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH * 0.5625; // 16:9 aspect ratio
+// Calculate dimensions for 2-column grid with vertical thumbnails
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SECTION_HORIZONTAL_MARGIN = 12;
+const GRID_HORIZONTAL_PADDING = 12;
+const GAP_BETWEEN_ITEMS = 12;
+
+// Available width inside the grid = screen - section margins (24) - grid padding (24)
+const AVAILABLE_WIDTH = SCREEN_WIDTH - (SECTION_HORIZONTAL_MARGIN * 2) - (GRID_HORIZONTAL_PADDING * 2);
+// Each item width = (available - gap) / 2
+const ITEM_WIDTH = Math.floor((AVAILABLE_WIDTH - GAP_BETWEEN_ITEMS) / 2);
+// Vertical aspect ratio (9:16) means height = width * (16/9)
+const ITEM_HEIGHT = Math.floor(ITEM_WIDTH * (16 / 9));
+
+console.log("[Stream] Layout dimensions:", {
+  screenWidth: SCREEN_WIDTH,
+  availableWidth: AVAILABLE_WIDTH,
+  itemWidth: ITEM_WIDTH,
+  itemHeight: ITEM_HEIGHT,
+  twoItemsWithGap: ITEM_WIDTH * 2 + GAP_BETWEEN_ITEMS,
+});
 
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
@@ -34,8 +54,12 @@ interface VideoThumbnailProps {
 
 function VideoThumbnail({ video, onPress }: VideoThumbnailProps) {
   return (
-    <TouchableOpacity style={styles.thumbnail} onPress={onPress}>
-      <View style={styles.thumbnailImageContainer}>
+    <TouchableOpacity
+      style={styles.thumbnailTouchable}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={styles.imageWrapper}>
         {video.thumbnailUrl ? (
           <Image
             source={{ uri: video.thumbnailUrl }}
@@ -120,13 +144,29 @@ function VideoSection({
       {section.isExpanded && (
         <View style={styles.videoGrid}>
           {section.videos.length > 0 ? (
-            section.videos.map((video) => (
-              <VideoThumbnail
-                key={video.id}
-                video={video}
-                onPress={() => onVideoPress(video)}
-              />
-            ))
+            // Group videos into pairs for 2-column layout
+            Array.from({ length: Math.ceil(section.videos.length / 2) }).map((_, rowIndex) => {
+              const video1 = section.videos[rowIndex * 2];
+              const video2 = section.videos[rowIndex * 2 + 1];
+              return (
+                <View key={rowIndex} style={styles.videoRow}>
+                  <View style={styles.thumbnailWrapper}>
+                    <VideoThumbnail
+                      video={video1}
+                      onPress={() => onVideoPress(video1)}
+                    />
+                  </View>
+                  {video2 && (
+                    <View style={styles.thumbnailWrapper}>
+                      <VideoThumbnail
+                        video={video2}
+                        onPress={() => onVideoPress(video2)}
+                      />
+                    </View>
+                  )}
+                </View>
+              );
+            })
           ) : (
             <Text style={styles.noVideosText}>No videos yet</Text>
           )}
@@ -333,7 +373,7 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
     backgroundColor: "#1F2937",
-    marginHorizontal: 12,
+    marginHorizontal: SECTION_HORIZONTAL_MARGIN,
     borderRadius: 12,
     overflow: "hidden",
   },
@@ -370,18 +410,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   videoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: 12,
+    paddingHorizontal: GRID_HORIZONTAL_PADDING,
     paddingBottom: 16,
-    gap: 12,
   },
-  thumbnail: {
-    width: THUMBNAIL_WIDTH,
+  videoRow: {
+    flexDirection: "row",
+    marginBottom: 12,
+    justifyContent: "space-between",
   },
-  thumbnailImageContainer: {
-    width: THUMBNAIL_WIDTH,
-    height: THUMBNAIL_HEIGHT,
+  thumbnailWrapper: {
+    width: ITEM_WIDTH,
+    flexShrink: 0,
+    flexGrow: 0,
+  },
+  thumbnailTouchable: {
+    width: "100%",
+  },
+  imageWrapper: {
+    width: ITEM_WIDTH,
+    height: ITEM_HEIGHT,
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#374151",

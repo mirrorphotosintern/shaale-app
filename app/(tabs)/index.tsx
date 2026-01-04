@@ -1,3 +1,6 @@
+// Stream tab screen - renders the Stream feed UI shown under the "Stream" bottom tab
+// Displays videos as a 2-column grid with portrait-cropped thumbnails (2 rows visible on screen)
+
 import { useEffect, useState, useCallback } from "react";
 import {
   View,
@@ -16,6 +19,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
 
+const SECTION_MARGIN = 12;
+const GRID_PADDING = 12;
+const GRID_GAP = 12;
+const PORTRAIT_RATIO = 16 / 9; // height = width * (16/9) => portrait container (9:16)
+
 function formatDuration(seconds: number | null): string {
   if (!seconds) return "";
   const mins = Math.floor(seconds / 60);
@@ -27,12 +35,20 @@ interface VideoThumbnailProps {
   video: StreamVideo;
   onPress: () => void;
   width: number;
+  isLastInRow?: boolean;
 }
 
-function VideoThumbnail({ video, onPress, width }: VideoThumbnailProps) {
+function VideoThumbnail({ video, onPress, width, isLastInRow }: VideoThumbnailProps) {
   return (
-    <TouchableOpacity style={[styles.thumbnail, { width }]} onPress={onPress}>
-      <View style={styles.thumbnailImageContainer}>
+    <TouchableOpacity
+      style={[
+        styles.thumbnail,
+        { width, marginRight: isLastInRow ? 0 : GRID_GAP },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.85}
+    >
+      <View style={[styles.thumbnailImageContainer, { height: Math.floor(width * PORTRAIT_RATIO) }]}>
         {video.thumbnailUrl ? (
           <Image
             source={{ uri: video.thumbnailUrl }}
@@ -119,12 +135,13 @@ function VideoSection({
       {section.isExpanded && (
         <View style={styles.videoGrid}>
           {section.videos.length > 0 ? (
-            section.videos.map((video) => (
+            section.videos.map((video, index) => (
               <VideoThumbnail
                 key={video.id}
                 video={video}
                 onPress={() => onVideoPress(video)}
                 width={thumbnailWidth}
+                isLastInRow={index % 2 === 1}
               />
             ))
           ) : (
@@ -139,9 +156,10 @@ function VideoSection({
 export default function StreamScreen() {
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
-  // Calculate thumbnail width: 2 per row
-  // Account for: section margins (24) + grid padding (16) + gap between items (8)
-  const thumbnailWidth = (screenWidth - 48) / 2;
+  // 2-column layout: screen - section margins - grid padding - gap between columns
+  const thumbnailWidth = Math.floor(
+    (screenWidth - (SECTION_MARGIN * 2) - (GRID_PADDING * 2) - GRID_GAP) / 2
+  );
 
   const [sections, setSections] = useState<SectionState[]>([
     { title: "Rhymes", key: "rhymes", videos: [], isExpanded: true },
@@ -339,7 +357,7 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 16,
     backgroundColor: "#1F2937",
-    marginHorizontal: 12,
+    marginHorizontal: SECTION_MARGIN,
     borderRadius: 12,
     overflow: "hidden",
   },
@@ -378,17 +396,15 @@ const styles = StyleSheet.create({
   videoGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingLeft: 12,
-    paddingRight: 4,
+    paddingHorizontal: GRID_PADDING,
     paddingBottom: 16,
+    justifyContent: "flex-start",
   },
   thumbnail: {
-    marginRight: 8,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   thumbnailImageContainer: {
     width: "100%",
-    aspectRatio: 16 / 9,
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#374151",
