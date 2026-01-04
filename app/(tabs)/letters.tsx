@@ -33,9 +33,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 type GameMode = "play" | "akshara" | "ottakshara";
 type LetterState = "upcoming" | "current" | "completed";
 
-// Grid layout constants
+// Grid layout constants - 5 letters per row
 const GRID_COLS = 5;
-const GRID_ROWS = 7;
 
 export default function TypeScreen() {
   const [gameMode, setGameMode] = useState<GameMode>("play");
@@ -108,11 +107,40 @@ export default function TypeScreen() {
         return;
       }
 
-      // Load and play audio
+      // Set audio mode for playback
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+      });
+
+      // Load and play audio - hardcoded URL from shaale.ai
+      const audioUrl = "https://www.shaale.ai/sounds/varnamalesong.mp3";
+      console.log("Loading audio from:", audioUrl);
+      
+      // Create sound with timeout handling
       const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/varnamale/audios/varnamalesong.mp3" },
-        { shouldPlay: true }
+        { uri: audioUrl },
+        {
+          shouldPlay: true,
+          isLooping: false,
+          volume: 1.0,
+        },
+        (status) => {
+          // Handle errors during playback
+          if (status.isLoaded && status.error) {
+            console.error("Playback error:", status.error);
+            Alert.alert("Playback Error", `Failed to play audio: ${status.error}`);
+            setIsPlaying(false);
+            setCurrentHighlightIndex(-1);
+            timeoutsRef.current.forEach((t) => clearTimeout(t));
+            timeoutsRef.current = [];
+          }
+        }
       );
+      
+      console.log("Audio loaded successfully");
+
       setSound(newSound);
       setIsPlaying(true);
       setCurrentHighlightIndex(0);
@@ -125,18 +153,36 @@ export default function TypeScreen() {
         timeoutsRef.current.push(timeoutId);
       });
 
-      // Handle playback end
+      // Handle playback end and errors
       newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setIsPlaying(false);
-          setCurrentHighlightIndex(-1);
-          timeoutsRef.current.forEach((t) => clearTimeout(t));
-          timeoutsRef.current = [];
+        if (status.isLoaded) {
+          if (status.didJustFinish) {
+            setIsPlaying(false);
+            setCurrentHighlightIndex(-1);
+            timeoutsRef.current.forEach((t) => clearTimeout(t));
+            timeoutsRef.current = [];
+          }
+          if (status.error) {
+            console.error("Playback status error:", status.error);
+            Alert.alert("Error", `Audio playback error: ${status.error}`);
+            setIsPlaying(false);
+            setCurrentHighlightIndex(-1);
+            timeoutsRef.current.forEach((t) => clearTimeout(t));
+            timeoutsRef.current = [];
+          }
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error playing audio:", error);
-      Alert.alert("Error", "Could not play audio");
+      const errorMessage = error?.message || error?.toString() || "Unknown error";
+      Alert.alert(
+        "Error", 
+        `Could not play audio. ${errorMessage.includes("1008") || errorMessage.includes("timeout") 
+          ? "Network timeout. Please check your internet connection." 
+          : errorMessage}`
+      );
+      setIsPlaying(false);
+      setCurrentHighlightIndex(-1);
     }
   };
 
@@ -266,44 +312,62 @@ export default function TypeScreen() {
   const renderConsonantGrid = () => {
     type GridItem = { kind: "cons"; value: string; index: number } | { kind: "blank"; value: string; index: number };
     const items: GridItem[] = KANNADA_CONSONANTS.map((c, idx) => ({ kind: "cons", value: c, index: idx }));
-    // Add blank to make 35 items (5x7)
-    items.push({ kind: "blank", value: "", index: -1 });
+    
+    // Hardcode to 5 columns - ensure each row has exactly 5 items
+    // Calculate how many blanks needed to fill last row to 5 columns
+    const totalItems = items.length;
+    const remainder = totalItems % GRID_COLS;
+    const blanksNeeded = remainder > 0 ? GRID_COLS - remainder : 0;
+    for (let i = 0; i < blanksNeeded; i++) {
+      items.push({ kind: "blank", value: "", index: -1 });
+    }
+
+    // Group items into rows of exactly 5
+    const rows: GridItem[][] = [];
+    for (let i = 0; i < items.length; i += GRID_COLS) {
+      rows.push(items.slice(i, i + GRID_COLS));
+    }
 
     return (
       <View style={[styles.consonantGrid, { width: tileSize * GRID_COLS + 8 }]}>
-        {items.map((item, idx) => {
-          if (item.kind === "blank") {
-            return <View key={`blank-${idx}`} style={{ width: tileSize, height: tileSize }} />;
-          }
+        {rows.map((row, rowIdx) => (
+          <View key={`row-${rowIdx}`} style={styles.consonantRow}>
+            {row.map((item, colIdx) => {
+              const idx = rowIdx * GRID_COLS + colIdx;
+              if (item.kind === "blank") {
+                return <View key={`blank-${idx}`} style={{ width: tileSize, height: tileSize }} />;
+              }
 
-          const letterState = gameMode === "play" ? getLetterState(item.value) : "upcoming";
-          const display = gameMode === "play" ? item.value : gameMode === "akshara" ? item.value : item.value + VIRAMA;
+              const letterState = gameMode === "play" ? getLetterState(item.value) : "upcoming";
+              const display = gameMode === "play" ? item.value : gameMode === "akshara" ? item.value : item.value + VIRAMA;
 
-          return (
-            <TouchableOpacity
-              key={`cons-${idx}`}
-              style={[
-                styles.consonantTile,
-                { width: tileSize, height: tileSize },
-                letterState === "current" && styles.consonantTileCurrent,
-                letterState === "completed" && styles.consonantTileCompleted,
-              ]}
-              onPress={() => onTapConsonant(item.value)}
-              disabled={gameMode === "play"}
-            >
-              <Text
-                style={[
-                  styles.consonantText,
-                  { fontSize: tileFontSize },
-                  letterState === "current" && styles.consonantTextCurrent,
-                  letterState === "completed" && styles.consonantTextCompleted,
-                ]}
-              >
-                {display}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+              return (
+                <TouchableOpacity
+                  key={`cons-${idx}`}
+                  style={[
+                    styles.consonantTile,
+                    { width: tileSize, height: tileSize },
+                    letterState === "current" && styles.consonantTileCurrent,
+                    letterState === "completed" && styles.consonantTileCompleted,
+                  ]}
+                  onPress={() => onTapConsonant(item.value)}
+                  disabled={gameMode === "play"}
+                >
+                  <Text
+                    style={[
+                      styles.consonantText,
+                      { fontSize: tileFontSize },
+                      letterState === "current" && styles.consonantTextCurrent,
+                      letterState === "completed" && styles.consonantTextCompleted,
+                    ]}
+                  >
+                    {display}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
       </View>
     );
   };
@@ -589,12 +653,16 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   consonantGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     justifyContent: "center",
     backgroundColor: "#E5E7EB",
     borderRadius: 10,
     padding: 4,
+    gap: 2,
+  },
+  consonantRow: {
+    flexDirection: "row",
+    justifyContent: "center",
     gap: 2,
   },
   consonantTile: {

@@ -4,14 +4,16 @@
  */
 
 // Unicode ranges and constants for Kannada
+// Layout: 5 letters per row, first column of each row is Ka, Cha, Ta, Ta (retroflex), Pa, etc.
+// Grouped by varga (family) - each row starts with the main consonant
 export const KANNADA_CONSONANTS = [
-  "ಕ", "ಖ", "ಗ", "ಘ", "ಙ",
-  "ಚ", "ಛ", "ಜ", "ಝ", "ಞ",
-  "ಟ", "ಠ", "ಡ", "ಢ", "ಣ",
-  "ತ", "ಥ", "ದ", "ಧ", "ನ",
-  "ಪ", "ಫ", "ಬ", "ಭ", "ಮ",
-  "ಯ", "ರ", "ಲ", "ವ", "ಶ",
-  "ಷ", "ಸ", "ಹ", "ಳ"
+  "ಕ", "ಖ", "ಗ", "ಘ", "ಙ",  // Row 1: Ka varga - ka, kha, ga, gha, nga
+  "ಚ", "ಛ", "ಜ", "ಝ", "ಞ",  // Row 2: Cha varga - cha, chha, ja, jha, nya
+  "ತ", "ಥ", "ದ", "ಧ", "ನ",  // Row 3: Ta varga - ta, tha, da, dha, na
+  "ಟ", "ಠ", "ಡ", "ಢ", "ಣ",  // Row 4: Ta (retroflex) varga - Ta, Tha, Da, Dha, Na
+  "ಪ", "ಫ", "ಬ", "ಭ", "ಮ",  // Row 5: Pa varga - pa, pha, ba, bha, ma
+  "ಯ", "ರ", "ಲ", "ವ", "ಶ",  // Row 6: Antastha + Ushma - ya, ra, la, va, sha
+  "ಷ", "ಸ", "ಹ", "ಳ"        // Row 7: Remaining Ushma - sha, sa, ha, la (4 letters)
 ];
 
 export const KANNADA_INDEPENDENT_VOWELS = [
@@ -62,14 +64,16 @@ export const RIGHT_SWARAS = ["ಇ", "ಈ", "ಉ", "ಊ"];
 export const BOTTOM_SWARAS = ["ಐ", "ಏ", "ಎ", "ಋ"];
 export const LEFT_SWARAS = [ANUSVARA, "ಔ", "ಓ", "ಒ"];
 
-// All letters in Varnamale song order
-export const ALL_VARNAMALE_LETTERS = [
+// Original order of letters in the Varnamale song (for timing reference)
+const ORIGINAL_SONG_LETTERS = [
   "ಅ", "ಆ", "ಇ", "ಈ", "ಉ", "ಊ", "ಋ", "ಎ", "ಏ", "ಐ", "ಒ", "ಓ", "ಔ", "ಅಂ", "ಅಃ",
-  ...KANNADA_CONSONANTS
+  "ಕ", "ಖ", "ಗ", "ಘ", "ಙ", "ಚ", "ಛ", "ಜ", "ಝ", "ಞ", "ಟ", "ಠ", "ಡ", "ಢ", "ಣ",
+  "ತ", "ಥ", "ದ", "ಧ", "ನ", "ಪ", "ಫ", "ಬ", "ಭ", "ಮ", "ಯ", "ರ", "ಲ", "ವ", "ಶ",
+  "ಷ", "ಸ", "ಹ", "ಳ"
 ];
 
-// Precise timing for each letter in the varnamale song (in milliseconds)
-export const LETTER_TIMINGS = [
+// Precise timing for each letter in the varnamale song (in milliseconds) - matches ORIGINAL_SONG_LETTERS order
+const ORIGINAL_LETTER_TIMINGS = [
   130,    // ಅ
   960,    // ಆ
   1620,   // ಇ
@@ -120,6 +124,21 @@ export const LETTER_TIMINGS = [
   50520,  // ಹ
   51000   // ಳ
 ];
+
+// Map from letter to its timing (works regardless of display order)
+export const LETTER_TO_TIMING_MAP: Record<string, number> = {};
+ORIGINAL_SONG_LETTERS.forEach((letter, index) => {
+  LETTER_TO_TIMING_MAP[letter] = ORIGINAL_LETTER_TIMINGS[index];
+});
+
+// All letters in current display order (for highlighting)
+export const ALL_VARNAMALE_LETTERS = [
+  "ಅ", "ಆ", "ಇ", "ಈ", "ಉ", "ಊ", "ಋ", "ಎ", "ಏ", "ಐ", "ಒ", "ಓ", "ಔ", "ಅಂ", "ಅಃ",
+  ...KANNADA_CONSONANTS
+];
+
+// Timings array in the same order as ALL_VARNAMALE_LETTERS (for compatibility)
+export const LETTER_TIMINGS = ALL_VARNAMALE_LETTERS.map(letter => LETTER_TO_TIMING_MAP[letter] || 0);
 
 export function isKannadaConsonant(char: string): boolean {
   return KANNADA_CONSONANTS.includes(char);
