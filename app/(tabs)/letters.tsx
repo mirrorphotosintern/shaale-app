@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Speech from "expo-speech";
 
 // Kannada vowels (Swaras)
 const VOWELS = [
@@ -155,9 +156,20 @@ export default function LettersScreen() {
           </View>
           <TouchableOpacity
             style={styles.playButton}
-            onPress={() => {
-              // TODO: Add audio playback
-              console.log("Play audio for:", selectedLetter.kannada);
+            onPress={async () => {
+              // Stop any ongoing speech first
+              await Speech.stop();
+              // Use text-to-speech for pronunciation
+              // Try Kannada first, fallback to Hindi which is more commonly available
+              const voices = await Speech.getAvailableVoicesAsync();
+              const kannadaVoice = voices.find(v => v.language.startsWith("kn"));
+              const hindiVoice = voices.find(v => v.language.startsWith("hi"));
+
+              Speech.speak(selectedLetter.kannada, {
+                language: kannadaVoice?.language || hindiVoice?.language || "en-IN",
+                rate: 0.7,
+                pitch: 1.0,
+              });
             }}
           >
             <Ionicons name="volume-high" size={24} color="#fff" />
@@ -262,11 +274,11 @@ export default function LettersScreen() {
           </View>
         </View>
 
-        {/* Coming soon notice */}
+        {/* Tip notice */}
         <View style={styles.comingSoon}>
-          <Ionicons name="construct" size={24} color="#6B7280" />
+          <Ionicons name="information-circle" size={24} color="#6B7280" />
           <Text style={styles.comingSoonText}>
-            Audio pronunciation and practice exercises coming soon!
+            Tap any letter to select it, then press the speaker icon to hear its pronunciation!
           </Text>
         </View>
       </ScrollView>

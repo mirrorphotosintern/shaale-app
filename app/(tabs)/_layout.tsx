@@ -5,14 +5,14 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#4F46E5",
+        tabBarActiveTintColor: "#8B5CF6",
         tabBarInactiveTintColor: "#9CA3AF",
         tabBarStyle: {
           backgroundColor: "#1F2937",
           borderTopColor: "#374151",
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 65,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -30,41 +30,34 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-          headerTitle: "Shaale",
-        }}
-      />
-      <Tabs.Screen
-        name="stream"
-        options={{
           title: "Stream",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="play-circle" size={size} color={color} />
           ),
-          headerTitle: "Watch & Learn",
+          headerTitle: "Stream",
         }}
       />
       <Tabs.Screen
         name="letters"
         options={{
-          title: "Letters",
+          title: "Learn",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="text" size={size} color={color} />
+            <Ionicons name="book" size={size} color={color} />
           ),
-          headerTitle: "Kannada Letters",
+          headerTitle: "Learn Kannada",
+        }}
+      />
+      {/* Hide unused tabs */}
+      <Tabs.Screen
+        name="stream"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-          headerTitle: "My Profile",
+          href: null,
         }}
       />
     </Tabs>

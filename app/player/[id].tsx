@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   Dimensions,
   StatusBar,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory } from "../../src/types/videos";
 
@@ -28,9 +26,6 @@ export default function PlayerScreen() {
     isBinge: string;
   }>();
 
-  const videoRef = useRef<Video>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(
     parseInt(params.videoIndex || "0", 10)
@@ -45,64 +40,72 @@ export default function PlayerScreen() {
   const isBinge = params.isBinge === "true";
   const sectionKey = params.sectionKey as VideoCategory;
 
-  // Fetch section videos for binge watching
+  // Create video player with expo-video
+  const player = useVideoPlayer(currentVideo.hlsUrl, (player) => {
+    player.muted = false;
+    player.volume = 1.0;
+    player.play();
+  });
+
+  // Listen to player events
   useEffect(() => {
-    if (isBinge && sectionKey) {
+    if (!player) return;
+
+    const statusSubscription = player.addListener("statusChange", (payload) => {
+      if (payload.status === "error") {
+        setError("Failed to play video");
+      }
+    });
+
+    const endSubscription = player.addListener("playToEnd", () => {
+      if (isBinge && sectionVideos.length > 0) {
+        const nextIndex = currentIndex + 1;
+        if (nextIndex < sectionVideos.length) {
+          const nextVideo = sectionVideos[nextIndex];
+          setCurrentIndex(nextIndex);
+          setCurrentVideo({
+            title: nextVideo.title,
+            hlsUrl: nextVideo.hls_link,
+          });
+        } else {
+          setIsAllDone(true);
+        }
+      } else if (!isBinge) {
+        // Loop video when not in binge mode
+        player.currentTime = 0;
+        player.play();
+      }
+    });
+
+    return () => {
+      statusSubscription.remove();
+      endSubscription.remove();
+    };
+  }, [player, isBinge, sectionVideos, currentIndex]);
+
+  // Fetch section videos for navigation (both binge and single mode)
+  useEffect(() => {
+    if (sectionKey) {
       listVideosByCategory(sectionKey).then((videos) => {
         setSectionVideos(videos);
       });
     }
-  }, [isBinge, sectionKey]);
+  }, [sectionKey]);
 
-  const handlePlaybackStatusUpdate = useCallback(
-    (status: AVPlaybackStatus) => {
-      if (!status.isLoaded) {
-        if (status.error) {
-          console.error("[Player] Playback error:", status.error);
-          setError("Failed to load video");
-        }
-        return;
-      }
-
-      setIsLoading(false);
-      setIsPlaying(status.isPlaying);
-
-      // Handle video end
-      if (status.didJustFinish && !status.isLooping) {
-        if (isBinge && sectionVideos.length > 0) {
-          const nextIndex = currentIndex + 1;
-          if (nextIndex < sectionVideos.length) {
-            // Play next video
-            const nextVideo = sectionVideos[nextIndex];
-            setCurrentIndex(nextIndex);
-            setCurrentVideo({
-              title: nextVideo.title,
-              hlsUrl: nextVideo.hls_link,
-            });
-            setIsLoading(true);
-          } else {
-            // All videos done
-            setIsAllDone(true);
-          }
-        }
-      }
-    },
-    [isBinge, sectionVideos, currentIndex]
-  );
+  // Update player source when video changes
+  useEffect(() => {
+    if (player && currentVideo.hlsUrl) {
+      player.replace(currentVideo.hlsUrl);
+      player.play();
+    }
+  }, [currentVideo.hlsUrl]);
 
   const handleClose = useCallback(() => {
-    router.back();
-  }, [router]);
-
-  const handlePlayPause = useCallback(async () => {
-    if (!videoRef.current) return;
-
-    if (isPlaying) {
-      await videoRef.current.pauseAsync();
-    } else {
-      await videoRef.current.playAsync();
+    if (player) {
+      player.pause();
     }
-  }, [isPlaying]);
+    router.back();
+  }, [router, player]);
 
   const handleNext = useCallback(() => {
     if (sectionVideos.length === 0) return;
@@ -115,7 +118,6 @@ export default function PlayerScreen() {
         title: nextVideo.title,
         hlsUrl: nextVideo.hls_link,
       });
-      setIsLoading(true);
       setIsAllDone(false);
     }
   }, [currentIndex, sectionVideos]);
@@ -131,7 +133,6 @@ export default function PlayerScreen() {
         title: prevVideo.title,
         hlsUrl: prevVideo.hls_link,
       });
-      setIsLoading(true);
       setIsAllDone(false);
     }
   }, [currentIndex, sectionVideos]);
@@ -144,114 +145,88 @@ export default function PlayerScreen() {
       title: sectionVideos[0].title,
       hlsUrl: sectionVideos[0].hls_link,
     });
-    setIsLoading(true);
     setIsAllDone(false);
   }, [sectionVideos]);
 
   if (error) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" hidden />
         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
           <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.errorContainer}>
+        <View style={styles.centerContainer}>
           <Ionicons name="alert-circle" size={48} color="#EF4444" />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={handleClose}>
-            <Text style={styles.retryButtonText}>Go Back</Text>
+            <Text style={styles.buttonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (isAllDone) {
     return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="light-content" />
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" hidden />
         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
           <Ionicons name="close" size={28} color="#fff" />
         </TouchableOpacity>
-        <View style={styles.allDoneContainer}>
-          <Text style={styles.allDoneEmoji}>🎉</Text>
-          <Text style={styles.allDoneTitle}>All Done!</Text>
-          <Text style={styles.allDoneSubtitle}>
+        <View style={styles.centerContainer}>
+          <Text style={styles.doneEmoji}>🎉</Text>
+          <Text style={styles.doneTitle}>All Done!</Text>
+          <Text style={styles.doneSubtitle}>
             You've watched all {sectionVideos.length} videos
           </Text>
-          <View style={styles.allDoneButtons}>
-            <TouchableOpacity
-              style={styles.restartButton}
-              onPress={handleRestart}
-            >
-              <Ionicons name="refresh" size={20} color="#fff" />
-              <Text style={styles.restartButtonText}>Watch Again</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={handleClose}
-            >
-              <Text style={styles.backButtonText}>Back to Stream</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleRestart}>
+            <Ionicons name="refresh" size={20} color="#fff" />
+            <Text style={styles.buttonText}>Watch Again</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.secondaryButton} onPress={handleClose}>
+            <Text style={styles.secondaryButtonText}>Back to Stream</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" hidden />
 
-      {/* Close button */}
+      {/* Full screen video player */}
+      <VideoView
+        player={player}
+        style={styles.fullScreenVideo}
+        contentFit="contain"
+        nativeControls
+        allowsFullscreen
+        allowsPictureInPicture
+      />
+
+      {/* Close button - moved to left to avoid volume control overlap */}
       <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
         <Ionicons name="close" size={28} color="#fff" />
       </TouchableOpacity>
 
-      {/* Video title */}
+      {/* Video title overlay */}
       <View style={styles.titleContainer}>
         <Text style={styles.title} numberOfLines={2}>
           {currentVideo.title}
         </Text>
-        {isBinge && sectionVideos.length > 0 && (
+        {sectionVideos.length > 1 && (
           <Text style={styles.progress}>
             {currentIndex + 1} of {sectionVideos.length}
           </Text>
         )}
       </View>
 
-      {/* Video player */}
-      <View style={styles.videoContainer}>
-        <Video
-          ref={videoRef}
-          source={{ uri: currentVideo.hlsUrl }}
-          style={styles.video}
-          resizeMode={ResizeMode.CONTAIN}
-          shouldPlay
-          useNativeControls
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-          onError={(error) => {
-            console.error("[Player] Video error:", error);
-            setError("Failed to play video");
-          }}
-        />
-
-        {/* Loading overlay */}
-        {isLoading && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#fff" />
-          </View>
-        )}
-      </View>
-
-      {/* Navigation controls for binge watch */}
-      {isBinge && sectionVideos.length > 0 && (
+      {/* Navigation controls - always show when videos available */}
+      {sectionVideos.length > 1 && (
         <View style={styles.controls}>
           <TouchableOpacity
-            style={[
-              styles.navButton,
-              currentIndex === 0 && styles.navButtonDisabled,
-            ]}
+            style={[styles.navButton, currentIndex === 0 && styles.navButtonDisabled]}
             onPress={handlePrevious}
             disabled={currentIndex === 0}
           >
@@ -260,50 +235,23 @@ export default function PlayerScreen() {
               size={24}
               color={currentIndex === 0 ? "#6B7280" : "#fff"}
             />
-            <Text
-              style={[
-                styles.navButtonText,
-                currentIndex === 0 && styles.navButtonTextDisabled,
-              ]}
-            >
-              Previous
-            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[
               styles.navButton,
               styles.nextButton,
-              currentIndex >= sectionVideos.length - 1 &&
-                styles.navButtonDisabled,
+              currentIndex >= sectionVideos.length - 1 && styles.navButtonDisabled,
             ]}
             onPress={handleNext}
             disabled={currentIndex >= sectionVideos.length - 1}
           >
-            <Text
-              style={[
-                styles.navButtonText,
-                currentIndex >= sectionVideos.length - 1 &&
-                  styles.navButtonTextDisabled,
-              ]}
-            >
-              Next
-            </Text>
             <Ionicons
               name="play-skip-forward"
               size={24}
-              color={
-                currentIndex >= sectionVideos.length - 1 ? "#6B7280" : "#fff"
-              }
+              color={currentIndex >= sectionVideos.length - 1 ? "#6B7280" : "#fff"}
             />
           </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Binge mode indicator */}
-      {isBinge && (
-        <View style={styles.bingeIndicator}>
-          <Text style={styles.bingeText}>Auto-advance enabled</Text>
         </View>
       )}
     </View>
@@ -315,51 +263,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
+  fullScreenVideo: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  },
   closeButton: {
     position: "absolute",
-    top: 60,
-    right: 20,
+    top: 50,
+    left: 16,
     zIndex: 100,
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
   titleContainer: {
     position: "absolute",
-    top: 60,
-    left: 20,
-    right: 80,
+    top: 50,
+    left: 70,
+    right: 16,
     zIndex: 100,
   },
   title: {
     fontSize: 16,
     fontWeight: "600",
     color: "#fff",
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   progress: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: "#E5E7EB",
     marginTop: 4,
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-  videoContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  video: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.5,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  errorContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -373,101 +321,73 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 16,
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#8B5CF6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
-  retryButtonText: {
+  buttonText: {
     color: "#fff",
     fontWeight: "600",
+    fontSize: 16,
   },
   controls: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    paddingBottom: 40,
-  },
-  navButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.1)",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    gap: 8,
-  },
-  nextButton: {
-    backgroundColor: "#4F46E5",
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
-  },
-  navButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-  },
-  navButtonTextDisabled: {
-    color: "#6B7280",
-  },
-  bingeIndicator: {
     position: "absolute",
     bottom: 100,
     left: 0,
     right: 0,
-    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 40,
+    zIndex: 100,
   },
-  bingeText: {
-    fontSize: 12,
-    color: "#9CA3AF",
-  },
-  allDoneContainer: {
-    flex: 1,
+  navButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
   },
-  allDoneEmoji: {
+  nextButton: {
+    backgroundColor: "#8B5CF6",
+  },
+  navButtonDisabled: {
+    opacity: 0.5,
+  },
+  doneEmoji: {
     fontSize: 64,
     marginBottom: 16,
   },
-  allDoneTitle: {
+  doneTitle: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 8,
   },
-  allDoneSubtitle: {
+  doneSubtitle: {
     fontSize: 16,
     color: "#9CA3AF",
     marginBottom: 32,
   },
-  allDoneButtons: {
-    gap: 12,
-  },
-  restartButton: {
+  primaryButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#4F46E5",
+    backgroundColor: "#8B5CF6",
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 8,
     gap: 8,
+    marginBottom: 12,
   },
-  restartButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  backButton: {
+  secondaryButton: {
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#374151",
   },
-  backButtonText: {
+  secondaryButtonText: {
     color: "#9CA3AF",
     fontWeight: "600",
     fontSize: 16,

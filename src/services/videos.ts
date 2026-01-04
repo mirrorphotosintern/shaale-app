@@ -8,7 +8,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // CSV URL from Supabase Storage - same as web app
 const VIDEOS_CSV_URL =
-  "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/stream/videos.csv";
+  "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/videos_csv/videos-template.csv";
 
 interface CSVRow {
   id?: string;
