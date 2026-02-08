@@ -38,13 +38,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="quest"
+        options={{
+          title: "Quest",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="game-controller" size={size} color={color} />
+          ),
+          headerShown: false,
+        }}
+      />
+      <Tabs.Screen
         name="letters"
         options={{
-          title: "Learn",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
-          ),
-          headerTitle: "Learn Kannada",
+          href: null,
         }}
       />
       {/* Hide unused tabs */}

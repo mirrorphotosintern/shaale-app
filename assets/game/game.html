@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+</style>
+</head>
+<body>
+<script src="phaser.min.js"></script>
+<script>
+// ============================================================
+// Shaale Quest - Kannada Learning RPG
+// Phaser 3 game running inside React Native WebView
+// ============================================================
+
+// Bridge: receive input from React Native
+window.gameInput = function(data) {
+  if (window.gameScene) {
+    window.gameScene.handleInput(data);
+  }
+};
+
+// Bridge: send events to React Native
+function sendToRN(type, payload) {
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: type, payload: payload }));
+  } else {
+    console.log('[RN Bridge]', type, payload);
+  }
+}
+
+// ============================================================
+// Boot Scene - Load assets
+// ============================================================
+class BootScene extends Phaser.Scene {
+  constructor() { super({ key: 'BootScene' }); }
+
+  preload() {
+    // Show loading bar
+    var w = this.cameras.main.width;
+    var h = this.cameras.main.height;
+    var bar = this.add.graphics();
+    var box = this.add.graphics();
+    box.fillStyle(0x222222, 0.8);
+    box.fillRect(w/4, h/2 - 15, w/2, 30);
+
+    this.load.on('progress', function(v) {
+      bar.clear();
+      bar.fillStyle(0x8B5CF6, 1);
+      bar.fillRect(w/4 + 5, h/2 - 10, (w/2 - 10) * v, 20);
+    });
+
+    this.load.on('complete', function() {
+      bar.destroy();
+      box.destroy();
+    });
+
+    // Load tilesets
+    this.load.image('tiny-town', 'tilesets/tilemap-characters_packed.png');
+    this.load.image('roguelike', 'tilesets/roguelikeSheet_transparent.png');
+
+    // Load player spritesheet (4 frames walk, 32x32 each)
+    this.load.spritesheet('player-walk-down', 'sprites/characters/player-walk-down.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('player-walk-up', 'sprites/characters/player-walk-up.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('player-walk-side', 'sprites/characters/player-walk-side.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('player-idle-down', 'sprites/characters/player-idle-down.png', { frameWidth: 32, frameHeight: 32 });
+
+    // Load NPC spritesheets
+    this.load.spritesheet('npc-knight-idle', 'sprites/npcs/knight-idle-down.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('npc-wizard-idle', 'sprites/npcs/wizard-idle-down.png', { frameWidth: 32, frameHeight: 32 });
+
+    // Load mob spritesheets
+    this.load.spritesheet('mob-orc-idle', 'sprites/mobs/orc-idle.png', { frameWidth: 32, frameHeight: 32 });
+
+    // Load props
+    this.load.image('tree-a', 'props/tree-a.png');
+    this.load.image('tree-b', 'props/tree-b.png');
+    this.load.image('rock-a', 'props/rock-a.png');
+
+    sendToRN('LOADING', { progress: 0 });
+  }
+
+  create() {
+    sendToRN('LOADED', {});
+    this.scene.start('Area1Scene');
+  }
+}
+
+// ============================================================
+// Area 1 Scene - Home Courtyard
+// ============================================================
+class Area1Scene extends Phaser.Scene {
+  constructor() { super({ key: 'Area1Scene' }); }
+
+  create() {
+    window.gameScene = this;
+    this.moveDir = { x: 0, y: 0 };
+    this.playerSpeed = 80;
+    this.canInteract = true;
+
+    // Create ground (simple colored tiles for MVP)
+    var g = this.add.graphics();
+    // Grass background
+    g.fillStyle(0x4a7c59, 1);
+    g.fillRect(0, 0, 480, 640);
+    // Path
+    g.fillStyle(0xc4a265, 1);
+    g.fillRect(200, 0, 80, 640);
+    g.fillRect(0, 300, 480, 60);
+    // House area (top)
+    g.fillStyle(0x8B6914, 1);
+    g.fillRect(50, 30, 140, 100);
+    g.fillStyle(0xA0522D, 1);
+    g.fillRect(55, 35, 130, 90);
+    // Roof
+    g.fillStyle(0xCC3333, 1);
+    g.fillRect(45, 15, 150, 20);
+    // Door
+    g.fillStyle(0x654321, 1);
+    g.fillRect(110, 95, 30, 35);
+    // Tulasi platform
+    g.fillStyle(0x8B4513, 1);
+    g.fillRect(320, 50, 40, 40);
+    g.fillStyle(0x228B22, 1);
+    g.fillRect(325, 35, 30, 20);
+    // Kolam pattern (white dots near entrance)
+    g.fillStyle(0xffffff, 0.6);
+    for (var i = 0; i < 5; i++) {
+      for (var j = 0; j < 5; j++) {
+        if ((i + j) % 2 === 0) {
+          g.fillCircle(200 + i * 16, 150 + j * 16, 2);
+        }
+      }
+    }
+
+    // Labels
+    this.add.text(80, 5, 'ಮನೆ (Home)', { fontSize: '10px', color: '#ffffff', fontFamily: 'sans-serif' });
+    this.add.text(310, 90, 'ತುಳಸಿ', { fontSize: '9px', color: '#90EE90', fontFamily: 'sans-serif' });
+
+    // Place trees as props
+    this.trees = this.physics.add.staticGroup();
+    var treePositions = [
+      [20, 200], [440, 200], [20, 450], [440, 450],
+      [60, 500], [400, 500], [160, 550], [300, 550]
+    ];
+    for (var t = 0; t < treePositions.length; t++) {
+      var tree = this.add.circle(treePositions[t][0], treePositions[t][1], 12, 0x2d5a27);
+      this.physics.add.existing(tree, true);
+      this.trees.add(tree);
+      // Tree crown
+      this.add.circle(treePositions[t][0], treePositions[t][1] - 10, 16, 0x3a7a33);
+    }
+
+    // House collision
+    this.houseBody = this.add.rectangle(120, 80, 150, 110);
+    this.physics.add.existing(this.houseBody, true);
+
+    // Create Player
+    this.player = this.add.circle(240, 400, 10, 0x4F46E5);
+    this.physics.add.existing(this.player);
+    this.player.body.setCollideWorldBounds(true);
+    // Player label
+    this.playerLabel = this.add.text(240, 385, '👤', { fontSize: '16px' }).setOrigin(0.5);
+
+    // Collisions
+    this.physics.add.collider(this.player, this.trees);
+    this.physics.add.collider(this.player, this.houseBody);
+
+    // Create NPCs
+    this.npcs = [];
+    this.createNPC(130, 150, 'ಅಮ್ಮ', 'Amma', 0xFF69B4, [
+      { kannada: 'ಬಾ! ಇಲ್ಲಿ ಬಾ!', english: 'Come! Come here!', words: ['ಬಾ', 'ಇಲ್ಲಿ'] },
+      { kannada: 'ನೋಡು, ಇದು ನಮ್ಮ ಮನೆ', english: 'Look, this is our home', words: ['ನೋಡು', 'ಇದು', 'ನಮ್ಮ', 'ಮನೆ'] },
+      { kannada: 'ನನಗೆ ಕೊಡು', english: 'Give me', words: ['ನನಗೆ', 'ಕೊಡು'] }
+    ]);
+    this.createNPC(350, 250, 'ಅಪ್ಪ', 'Appa', 0x4169E1, [
+      { kannada: 'ಬಾ ಮಗ, ಇಲ್ಲಿ ಬಾ', english: 'Come child, come here', words: ['ಮಗ'] },
+      { kannada: 'ಒಳ್ಳೆಯ ಮಗು', english: 'Good child', words: ['ಒಳ್ಳೆಯ', 'ಮಗು'] }
+    ]);
+
+    // Create Moti the dog
+    this.createNPC(300, 350, 'ಮೋತಿ', 'Moti 🐕', 0xDAA520, [
+      { kannada: 'ಬೌ ಬೌ! ನಾಯಿ ಇಲ್ಲಿ!', english: 'Bow bow! Dog is here!', words: ['ನಾಯಿ'] }
+    ]);
+
+    // Gubbi the sparrow (near tulasi plant)
+    this.gubbi = this.createNPC(340, 60, 'ಗುಬ್ಬಿ', 'Gubbi 🐦', 0xFFD700, [
+      { kannada: 'ಚಿಲಿ ಚಿಲಿ! ನಾನು ಗುಬ್ಬಿ!', english: 'Chirp chirp! I am Gubbi!', words: ['ನಾನು', 'ಗುಬ್ಬಿ'] },
+      { kannada: 'ನಿನ್ನ ಜೊತೆ ಬರುತ್ತೇನೆ!', english: 'I will come with you!', words: ['ನಿನ್ನ', 'ಜೊತೆ'] }
+    ]);
+
+    // Interaction prompt
+    this.interactPrompt = this.add.text(0, 0, '[ A ]', {
+      fontSize: '10px', color: '#FFD700', fontFamily: 'monospace',
+      backgroundColor: '#000000', padding: { x: 4, y: 2 }
+    }).setOrigin(0.5).setVisible(false);
+
+    // Camera follows player
+    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.setZoom(1.5);
+    this.cameras.main.setBounds(0, 0, 480, 640);
+    this.physics.world.setBounds(0, 0, 480, 640);
+
+    // Notify RN that scene is ready
+    sendToRN('SCENE_READY', { area: 1, name: 'Home Courtyard' });
+
+    // Area title flash
+    var title = this.add.text(240, 320, 'ಮನೆಯ ಅಂಗಳ\nHome Courtyard', {
+      fontSize: '14px', color: '#FFD700', fontFamily: 'sans-serif',
+      align: 'center', backgroundColor: '#000000aa', padding: { x: 12, y: 8 }
+    }).setOrigin(0.5).setScrollFactor(0).setDepth(100);
+    this.tweens.add({
+      targets: title, alpha: 0, delay: 2000, duration: 1000,
+      onComplete: function() { title.destroy(); }
+    });
+  }
+
+  createNPC(x, y, kannadaName, englishName, color, dialogs) {
+    var npc = this.add.circle(x, y, 8, color);
+    this.physics.add.existing(npc, true);
+    var label = this.add.text(x, y - 16, kannadaName, {
+      fontSize: '8px', color: '#ffffff', fontFamily: 'sans-serif',
+      backgroundColor: '#00000088', padding: { x: 2, y: 1 }
+    }).setOrigin(0.5);
+    npc.npcData = {
+      kannadaName: kannadaName,
+      englishName: englishName,
+      dialogs: dialogs,
+      currentDialog: 0,
+      label: label
+    };
+    this.npcs.push(npc);
+    this.physics.add.collider(this.player, npc);
+    return npc;
+  }
+
+  handleInput(data) {
+    switch(data.type) {
+      case 'MOVE':
+        this.moveDir = { x: 0, y: 0 };
+        if (data.direction === 'up') this.moveDir.y = -1;
+        if (data.direction === 'down') this.moveDir.y = 1;
+        if (data.direction === 'left') this.moveDir.x = -1;
+        if (data.direction === 'right') this.moveDir.x = 1;
+        if (data.direction === 'up-left') { this.moveDir.x = -0.707; this.moveDir.y = -0.707; }
+        if (data.direction === 'up-right') { this.moveDir.x = 0.707; this.moveDir.y = -0.707; }
+        if (data.direction === 'down-left') { this.moveDir.x = -0.707; this.moveDir.y = 0.707; }
+        if (data.direction === 'down-right') { this.moveDir.x = 0.707; this.moveDir.y = 0.707; }
+        break;
+      case 'STOP':
+        this.moveDir = { x: 0, y: 0 };
+        break;
+      case 'ACTION':
+        this.tryInteract();
+        break;
+    }
+  }
+
+  tryInteract() {
+    if (!this.canInteract) return;
+    var px = this.player.x;
+    var py = this.player.y;
+    var closest = null;
+    var closestDist = 50; // interaction range
+
+    for (var i = 0; i < this.npcs.length; i++) {
+      var npc = this.npcs[i];
+      var dist = Phaser.Math.Distance.Between(px, py, npc.x, npc.y);
+      if (dist < closestDist) {
+        closest = npc;
+        closestDist = dist;
+      }
+    }
+
+    if (closest && closest.npcData) {
+      var d = closest.npcData;
+      var dialog = d.dialogs[d.currentDialog];
+      sendToRN('DIALOG', {
+        npc: d.englishName,
+        npcKannada: d.kannadaName,
+        kannada: dialog.kannada,
+        english: dialog.english,
+        words: dialog.words
+      });
+      // Teach words
+      for (var w = 0; w < dialog.words.length; w++) {
+        sendToRN('WORD_LEARNED', { kannada: dialog.words[w], source: d.englishName });
+      }
+      d.currentDialog = (d.currentDialog + 1) % d.dialogs.length;
+      // Briefly disable interaction
+      this.canInteract = false;
+      var self = this;
+      this.time.delayedCall(500, function() { self.canInteract = true; });
+    }
+  }
+
+  update() {
+    // Apply movement
+    if (this.player.body) {
+      this.player.body.setVelocity(
+        this.moveDir.x * this.playerSpeed,
+        this.moveDir.y * this.playerSpeed
+      );
+    }
+    // Update player label position
+    this.playerLabel.setPosition(this.player.x, this.player.y - 15);
+
+    // Check for nearby NPCs and show interaction prompt
+    var px = this.player.x;
+    var py = this.player.y;
+    var nearNPC = false;
+    for (var i = 0; i < this.npcs.length; i++) {
+      var dist = Phaser.Math.Distance.Between(px, py, this.npcs[i].x, this.npcs[i].y);
+      if (dist < 50) {
+        nearNPC = true;
+        this.interactPrompt.setPosition(this.npcs[i].x, this.npcs[i].y - 28);
+        this.interactPrompt.setVisible(true);
+        break;
+      }
+    }
+    if (!nearNPC) {
+      this.interactPrompt.setVisible(false);
+    }
+
+    // Send position updates periodically
+    if (this.time.now % 500 < 20) {
+      sendToRN('POSITION', { x: Math.round(px), y: Math.round(py) });
+    }
+  }
+}
+
+// ============================================================
+// Battle Scene (stub for Phase 2)
+// ============================================================
+class BattleScene extends Phaser.Scene {
+  constructor() { super({ key: 'BattleScene' }); }
+  create() {
+    this.add.text(180, 270, 'Battle!', { fontSize: '24px', color: '#ff0000' });
+  }
+}
+
+// ============================================================
+// Game Config
+// ============================================================
+var config = {
+  type: Phaser.AUTO,
+  width: 480,
+  height: 640,
+  parent: document.body,
+  pixelArt: true,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 0 },
+      debug: false
+    }
+  },
+  scene: [BootScene, Area1Scene, BattleScene]
+};
+
+var game = new Phaser.Game(config);
+</script>
+</body>
+</html>
