@@ -16,8 +16,14 @@ const PET_NAME: Record<string, string> = {
   gandaberunda: "ಗಂಡಭೇರುಂಡ",
 };
 
+const AREA_LABELS: Record<string, string> = {
+  charselect: "",
+  house: "ಮನೆ",
+  courtyard: "ಅಂಗಳ",
+};
+
 export default function GameHUD() {
-  const { wordsLearned, totalXp, petStage } = useQuestStore();
+  const { wordsLearned, totalXp, petStage, currentArea } = useQuestStore();
 
   return (
     <View style={styles.container}>

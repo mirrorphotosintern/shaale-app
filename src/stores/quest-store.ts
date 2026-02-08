@@ -16,11 +16,14 @@ export interface DialogData {
 }
 
 export type PetStage = "none" | "gubbi" | "garuda" | "gandaberunda";
+export type Character = "gunda" | "maaya" | null;
+export type Area = "charselect" | "house" | "courtyard";
 
 interface QuestState {
   // Game state
   isLoaded: boolean;
-  currentArea: number;
+  currentArea: Area;
+  character: Character;
   playerPosition: { x: number; y: number };
 
   // Dialog
@@ -34,6 +37,8 @@ interface QuestState {
 
   // Actions
   setLoaded: (loaded: boolean) => void;
+  setCharacter: (character: Character) => void;
+  setArea: (area: Area) => void;
   setDialog: (dialog: DialogData | null) => void;
   learnWord: (word: WordMastery) => void;
   setPosition: (pos: { x: number; y: number }) => void;
@@ -43,7 +48,8 @@ interface QuestState {
 
 export const useQuestStore = create<QuestState>((set, get) => ({
   isLoaded: false,
-  currentArea: 1,
+  currentArea: "charselect",
+  character: null,
   playerPosition: { x: 240, y: 400 },
   activeDialog: null,
   wordsLearned: [],
@@ -52,6 +58,10 @@ export const useQuestStore = create<QuestState>((set, get) => ({
   totalXp: 0,
 
   setLoaded: (loaded) => set({ isLoaded: loaded }),
+
+  setCharacter: (character) => set({ character }),
+
+  setArea: (area) => set({ currentArea: area }),
 
   setDialog: (dialog) => set({ activeDialog: dialog }),
 

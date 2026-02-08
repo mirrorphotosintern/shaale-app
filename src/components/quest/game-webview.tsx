@@ -10,8 +10,15 @@ interface GameWebViewProps {
 
 export default function GameWebView({ onReady }: GameWebViewProps) {
   const webViewRef = useRef<WebView>(null);
-  const { setLoaded, setDialog, learnWord, setPosition, addXp } =
-    useQuestStore();
+  const {
+    setLoaded,
+    setDialog,
+    learnWord,
+    setPosition,
+    addXp,
+    setCharacter,
+    setArea,
+  } = useQuestStore();
 
   const handleMessage = useCallback(
     (event: WebViewMessageEvent) => {
@@ -21,6 +28,13 @@ export default function GameWebView({ onReady }: GameWebViewProps) {
           case "LOADED":
             setLoaded(true);
             onReady?.();
+            break;
+          case "CHARACTER_SELECTED":
+            setCharacter(data.payload.character);
+            setArea("house");
+            break;
+          case "AREA_CHANGE":
+            setArea(data.payload.to);
             break;
           case "DIALOG":
             setDialog(data.payload);
@@ -44,7 +58,16 @@ export default function GameWebView({ onReady }: GameWebViewProps) {
         console.warn("Invalid message from game:", e);
       }
     },
-    [setLoaded, setDialog, learnWord, setPosition, addXp, onReady]
+    [
+      setLoaded,
+      setDialog,
+      learnWord,
+      setPosition,
+      addXp,
+      setCharacter,
+      setArea,
+      onReady,
+    ]
   );
 
   // Send input command to the Phaser game

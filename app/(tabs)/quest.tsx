@@ -6,9 +6,12 @@ import VirtualDPad from "../../src/components/quest/virtual-dpad";
 import ActionButton from "../../src/components/quest/action-button";
 import GameHUD from "../../src/components/quest/game-hud";
 import DialogOverlay from "../../src/components/quest/dialog-overlay";
+import { useQuestStore } from "../../src/stores/quest-store";
 
 export default function QuestScreen() {
   const [isLoading, setIsLoading] = useState(true);
+  const { currentArea } = useQuestStore();
+  const showControls = currentArea !== "charselect";
 
   return (
     <View style={styles.container}>
@@ -24,23 +27,27 @@ export default function QuestScreen() {
         </View>
       )}
 
-      {/* HUD overlay */}
-      <SafeAreaView style={styles.hudContainer} pointerEvents="box-none">
-        <GameHUD />
-      </SafeAreaView>
+      {/* HUD overlay - only show during gameplay */}
+      {showControls && (
+        <SafeAreaView style={styles.hudContainer} pointerEvents="box-none">
+          <GameHUD />
+        </SafeAreaView>
+      )}
 
       {/* Dialog overlay */}
       <DialogOverlay />
 
-      {/* Controls overlay */}
-      <View style={styles.controlsContainer} pointerEvents="box-none">
-        <View style={styles.dpadContainer}>
-          <VirtualDPad />
+      {/* Controls overlay - only show during gameplay */}
+      {showControls && (
+        <View style={styles.controlsContainer} pointerEvents="box-none">
+          <View style={styles.dpadContainer}>
+            <VirtualDPad />
+          </View>
+          <View style={styles.actionContainer}>
+            <ActionButton />
+          </View>
         </View>
-        <View style={styles.actionContainer}>
-          <ActionButton />
-        </View>
-      </View>
+      )}
     </View>
   );
 }
