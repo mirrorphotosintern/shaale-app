@@ -2,7 +2,9 @@ import React, { useRef, useCallback } from "react";
 import { StyleSheet, View } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { useQuestStore } from "../../stores/quest-store";
-import { GAME_HTML } from "./game-html";
+
+const GAME_URL =
+  "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/game-assets/game.html";
 
 interface GameWebViewProps {
   onReady?: () => void;
@@ -95,7 +97,7 @@ export default function GameWebView({ onReady }: GameWebViewProps) {
     <View style={styles.container}>
       <WebView
         ref={webViewRef}
-        source={{ html: GAME_HTML }}
+        source={{ uri: GAME_URL }}
         style={styles.webview}
         onMessage={handleMessage}
         javaScriptEnabled={true}
