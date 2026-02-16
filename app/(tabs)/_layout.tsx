@@ -48,6 +48,25 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="quiz"
+        options={{
+          title: "Quiz",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="help-circle" size={size} color={color} />
+          ),
+          headerTitle: "Quiz",
+          headerStyle: {
+            backgroundColor: "#F2F2F7",
+          },
+          headerTintColor: "#1C1C1E",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "#1C1C1E",
+          },
+          headerShadowVisible: false,
+        }}
+      />
+      <Tabs.Screen
         name="letters"
         options={{
           href: null,
