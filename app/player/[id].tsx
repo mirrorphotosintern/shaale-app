@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   StatusBar,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useVideoPlayer, VideoView } from "expo-video";
+import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { Ionicons } from "@expo/vector-icons";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory } from "../../src/types/videos";
@@ -17,6 +17,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 export default function PlayerScreen() {
   const router = useRouter();
+  const videoRef = useRef<Video>(null);
   const params = useLocalSearchParams<{
     id: string;
     hlsUrl: string;
@@ -40,111 +41,77 @@ export default function PlayerScreen() {
   const isBinge = params.isBinge === "true";
   const sectionKey = params.sectionKey as VideoCategory;
 
-  // Create video player with expo-video
-  const player = useVideoPlayer(currentVideo.hlsUrl, (player) => {
-    player.muted = false;
-    player.volume = 1.0;
-    player.play();
-  });
-
-  // Listen to player events
-  useEffect(() => {
-    if (!player) return;
-
-    const statusSubscription = player.addListener("statusChange", (payload) => {
-      if (payload.status === "error") {
-        setError("Failed to play video");
+  const handlePlaybackStatus = useCallback(
+    (status: AVPlaybackStatus) => {
+      if (!status.isLoaded) {
+        if (status.error) setError("Failed to play video");
+        return;
       }
-    });
-
-    const endSubscription = player.addListener("playToEnd", () => {
-      if (isBinge && sectionVideos.length > 0) {
-        const nextIndex = currentIndex + 1;
-        if (nextIndex < sectionVideos.length) {
-          const nextVideo = sectionVideos[nextIndex];
-          setCurrentIndex(nextIndex);
-          setCurrentVideo({
-            title: nextVideo.title,
-            hlsUrl: nextVideo.hls_link,
-          });
-        } else {
-          setIsAllDone(true);
+      if (status.didJustFinish) {
+        if (isBinge && sectionVideos.length > 0) {
+          const nextIndex = currentIndex + 1;
+          if (nextIndex < sectionVideos.length) {
+            const nextVideo = sectionVideos[nextIndex];
+            setCurrentIndex(nextIndex);
+            setCurrentVideo({ title: nextVideo.title, hlsUrl: nextVideo.hls_link });
+          } else {
+            setIsAllDone(true);
+          }
+        } else if (!isBinge) {
+          videoRef.current?.setPositionAsync(0).then(() => videoRef.current?.playAsync());
         }
-      } else if (!isBinge) {
-        // Loop video when not in binge mode
-        player.currentTime = 0;
-        player.play();
       }
-    });
+    },
+    [isBinge, sectionVideos, currentIndex]
+  );
 
-    return () => {
-      statusSubscription.remove();
-      endSubscription.remove();
-    };
-  }, [player, isBinge, sectionVideos, currentIndex]);
-
-  // Fetch section videos for navigation (both binge and single mode)
+  // Fetch section videos for navigation
   useEffect(() => {
     if (sectionKey) {
-      listVideosByCategory(sectionKey).then((videos) => {
-        setSectionVideos(videos);
-      });
+      listVideosByCategory(sectionKey).then(setSectionVideos);
     }
   }, [sectionKey]);
 
-  // Update player source when video changes
+  // Load new video when URL changes (navigation between videos)
   useEffect(() => {
-    if (player && currentVideo.hlsUrl) {
-      player.replace(currentVideo.hlsUrl);
-      player.play();
+    if (videoRef.current && currentVideo.hlsUrl) {
+      videoRef.current
+        .loadAsync({ uri: currentVideo.hlsUrl }, { shouldPlay: true })
+        .catch(() => setError("Failed to load video"));
     }
   }, [currentVideo.hlsUrl]);
 
   const handleClose = useCallback(() => {
-    if (player) {
-      player.pause();
-    }
+    videoRef.current?.pauseAsync().catch(() => {});
     router.back();
-  }, [router, player]);
+  }, [router]);
 
   const handleNext = useCallback(() => {
     if (sectionVideos.length === 0) return;
-
     const nextIndex = currentIndex + 1;
     if (nextIndex < sectionVideos.length) {
       const nextVideo = sectionVideos[nextIndex];
       setCurrentIndex(nextIndex);
-      setCurrentVideo({
-        title: nextVideo.title,
-        hlsUrl: nextVideo.hls_link,
-      });
+      setCurrentVideo({ title: nextVideo.title, hlsUrl: nextVideo.hls_link });
       setIsAllDone(false);
     }
   }, [currentIndex, sectionVideos]);
 
   const handlePrevious = useCallback(() => {
     if (sectionVideos.length === 0) return;
-
     const prevIndex = currentIndex - 1;
     if (prevIndex >= 0) {
       const prevVideo = sectionVideos[prevIndex];
       setCurrentIndex(prevIndex);
-      setCurrentVideo({
-        title: prevVideo.title,
-        hlsUrl: prevVideo.hls_link,
-      });
+      setCurrentVideo({ title: prevVideo.title, hlsUrl: prevVideo.hls_link });
       setIsAllDone(false);
     }
   }, [currentIndex, sectionVideos]);
 
   const handleRestart = useCallback(() => {
     if (sectionVideos.length === 0) return;
-
     setCurrentIndex(0);
-    setCurrentVideo({
-      title: sectionVideos[0].title,
-      hlsUrl: sectionVideos[0].hls_link,
-    });
+    setCurrentVideo({ title: sectionVideos[0].title, hlsUrl: sectionVideos[0].hls_link });
     setIsAllDone(false);
   }, [sectionVideos]);
 
@@ -195,17 +162,18 @@ export default function PlayerScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" hidden />
 
-      {/* Full screen video player */}
-      <VideoView
-        player={player}
+      <Video
+        ref={videoRef}
+        source={{ uri: currentVideo.hlsUrl }}
         style={styles.fullScreenVideo}
-        contentFit="contain"
-        nativeControls
-        allowsFullscreen
-        allowsPictureInPicture
+        resizeMode={ResizeMode.CONTAIN}
+        useNativeControls
+        shouldPlay
+        onPlaybackStatusUpdate={handlePlaybackStatus}
+        onError={() => setError("Failed to play video")}
       />
 
-      {/* Close button - moved to left to avoid volume control overlap */}
+      {/* Close button */}
       <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
         <Ionicons name="close" size={28} color="#fff" />
       </TouchableOpacity>
@@ -222,7 +190,7 @@ export default function PlayerScreen() {
         )}
       </View>
 
-      {/* Navigation controls - always show when videos available */}
+      {/* Navigation controls */}
       {sectionVideos.length > 1 && (
         <View style={styles.controls}>
           <TouchableOpacity

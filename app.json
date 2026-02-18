@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ai.shaale.app",
-      "buildNumber": "5",
+      "buildNumber": "6",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
@@ -52,8 +52,7 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone for pronunciation practice."
         }
       ],
-      "expo-font",
-      "expo-video"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
