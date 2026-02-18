@@ -1,7 +1,7 @@
 {
   "name": "shaale-app",
   "version": "1.0.0",
-  "main": "expo-router/entry",
+  "main": "./index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -12,23 +12,13 @@
     "build:android": "eas build --platform android"
   },
   "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
     "expo": "~54.0.33",
-    "expo-constants": "~18.0.13",
-    "expo-router": "~6.0.23",
-"react": "^19.2.4",
-    "react-native": "0.81.5",
-    "react-native-safe-area-context": "^5.6.2",
-    "react-native-screens": "~4.16.0"
+    "react": "^19.2.4",
+    "react-native": "0.81.5"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
     "typescript": "~5.9.2"
-  },
-  "expo": {
-    "install": {
-      "exclude": ["react"]
-    }
   },
   "private": true
 }
