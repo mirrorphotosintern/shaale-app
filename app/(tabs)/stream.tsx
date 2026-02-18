@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
 

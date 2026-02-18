@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,9 @@ import {
   TouchableOpacity,
   Dimensions,
   Alert,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Audio } from "expo-av";
 import {
   KANNADA_CONSONANTS,
   KANNADA_INDEPENDENT_VOWELS,
@@ -43,12 +42,6 @@ export default function TypeScreen() {
   const [score, setScore] = useState(0);
   const [showModeSelector, setShowModeSelector] = useState(false);
 
-  // Play mode state
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
   // Ottakshara state
   const [pendingConsonants, setPendingConsonants] = useState<string[]>([]);
   const [hasRootSelection, setHasRootSelection] = useState(false);
@@ -60,147 +53,21 @@ export default function TypeScreen() {
   const tileFontSize = Math.max(14, Math.floor(tileSize * 0.5));
   const swaraFontSize = Math.max(14, Math.floor(swaraSize * 0.5));
 
-  // Cleanup audio on unmount
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-      timeoutsRef.current.forEach((t) => clearTimeout(t));
-    };
-  }, [sound]);
-
-  // Stop audio when switching modes
-  useEffect(() => {
-    if (gameMode !== "play" && sound) {
-      sound.stopAsync();
-      setIsPlaying(false);
-      setCurrentHighlightIndex(-1);
-      timeoutsRef.current.forEach((t) => clearTimeout(t));
-      timeoutsRef.current = [];
-    }
-  }, [gameMode]);
-
   const getLetterState = (letter: string): LetterState => {
-    if (currentHighlightIndex === -1) return "upcoming";
-
-    const letterIndex = ALL_VARNAMALE_LETTERS.findIndex((l) => {
-      if (letter === ANUSVARA && l === "ಅಂ") return true;
-      if (letter === VISARGA && l === "ಅಃ") return true;
-      return l === letter;
-    });
-
-    if (letterIndex === -1) return "upcoming";
-    if (letterIndex < currentHighlightIndex) return "completed";
-    if (letterIndex === currentHighlightIndex) return "current";
     return "upcoming";
   };
 
   const handlePlayAudio = async () => {
-    try {
-      if (isPlaying && sound) {
-        await sound.stopAsync();
-        setIsPlaying(false);
-        setCurrentHighlightIndex(-1);
-        timeoutsRef.current.forEach((t) => clearTimeout(t));
-        timeoutsRef.current = [];
-        return;
-      }
-
-      // Set audio mode for playback
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        shouldDuckAndroid: true,
-      });
-
-      // Load and play audio - hardcoded URL from shaale.ai
-      const audioUrl = "https://www.shaale.ai/sounds/varnamalesong.mp3";
-      console.log("Loading audio from:", audioUrl);
-      
-      // Create sound with timeout handling
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: audioUrl },
-        {
-          shouldPlay: true,
-          isLooping: false,
-          volume: 1.0,
-        },
-        (status) => {
-          // Handle errors during playback
-          if (status.isLoaded && status.error) {
-            console.error("Playback error:", status.error);
-            Alert.alert("Playback Error", `Failed to play audio: ${status.error}`);
-            setIsPlaying(false);
-            setCurrentHighlightIndex(-1);
-            timeoutsRef.current.forEach((t) => clearTimeout(t));
-            timeoutsRef.current = [];
-          }
-        }
-      );
-      
-      console.log("Audio loaded successfully");
-
-      setSound(newSound);
-      setIsPlaying(true);
-      setCurrentHighlightIndex(0);
-
-      // Schedule letter highlights
-      LETTER_TIMINGS.forEach((timing, index) => {
-        const timeoutId = setTimeout(() => {
-          setCurrentHighlightIndex(index);
-        }, timing);
-        timeoutsRef.current.push(timeoutId);
-      });
-
-      // Handle playback end and errors
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded) {
-          if (status.didJustFinish) {
-            setIsPlaying(false);
-            setCurrentHighlightIndex(-1);
-            timeoutsRef.current.forEach((t) => clearTimeout(t));
-            timeoutsRef.current = [];
-          }
-          if (status.error) {
-            console.error("Playback status error:", status.error);
-            Alert.alert("Error", `Audio playback error: ${status.error}`);
-            setIsPlaying(false);
-            setCurrentHighlightIndex(-1);
-            timeoutsRef.current.forEach((t) => clearTimeout(t));
-            timeoutsRef.current = [];
-          }
-        }
-      });
-    } catch (error: any) {
-      console.error("Error playing audio:", error);
-      const errorMessage = error?.message || error?.toString() || "Unknown error";
-      Alert.alert(
-        "Error", 
-        `Could not play audio. ${errorMessage.includes("1008") || errorMessage.includes("timeout") 
-          ? "Network timeout. Please check your internet connection." 
-          : errorMessage}`
-      );
-      setIsPlaying(false);
-      setCurrentHighlightIndex(-1);
-    }
+    Alert.alert("Coming Soon", "Audio playback will be available in a future update.");
   };
 
   const onTapSwara = (swara: string) => {
     if (gameMode === "play") return;
 
     if (pendingConsonants.length > 0) {
-      // Complete the akshara with the selected vowel
       const lastConsonant = pendingConsonants[pendingConsonants.length - 1];
       const ak = buildAkshara(lastConsonant, swara);
 
-      // Remove pending consonants from word and add complete akshara
-      const wordWithoutPending = currentWord.slice(
-        0,
-        currentWord.length - pendingConsonants.length - (pendingConsonants.length > 0 ? pendingConsonants.length : 0)
-      );
-
-      // Actually rebuild properly - remove all pending consonant+virama sequences
       let newWord = currentWord;
       for (let i = 0; i < pendingConsonants.length; i++) {
         if (newWord.endsWith(VIRAMA)) {
@@ -215,7 +82,6 @@ export default function TypeScreen() {
       setPendingConsonants([]);
       setHasRootSelection(false);
     } else {
-      // Pure vowel insertion
       setCurrentWord((w) => w + swara);
     }
   };
@@ -224,10 +90,8 @@ export default function TypeScreen() {
     if (gameMode === "play") return;
 
     if (gameMode === "akshara") {
-      // Simple mode - just add consonant
       setCurrentWord((w) => w + consonant);
     } else {
-      // Ottakshara mode - add consonant with virama
       const consonantWithVirama = consonant + VIRAMA;
       setCurrentWord((w) => w + consonantWithVirama);
       setPendingConsonants((prev) => [...prev, consonant]);
@@ -263,7 +127,6 @@ export default function TypeScreen() {
       return;
     }
 
-    // For now, accept all valid words (no dictionary check)
     setWordsFound((prev) => [...prev, word]);
     setScore((s) => s + 10);
     setCurrentWord("");
@@ -280,7 +143,7 @@ export default function TypeScreen() {
   const renderSwaraButton = (swara: string, key: string) => {
     const isAnusvara = swara === ANUSVARA;
     const isVisarga = swara === VISARGA;
-    const displayLabel = isAnusvara ? "ಅಂ" : isVisarga ? "ಅಃ" : swara;
+    const displayLabel = isAnusvara ? "\u0C85\u0C82" : isVisarga ? "\u0C85\u0C83" : swara;
     const letterState = gameMode === "play" ? getLetterState(swara) : "upcoming";
 
     return (
@@ -312,9 +175,7 @@ export default function TypeScreen() {
   const renderConsonantGrid = () => {
     type GridItem = { kind: "cons"; value: string; index: number } | { kind: "blank"; value: string; index: number };
     const items: GridItem[] = KANNADA_CONSONANTS.map((c, idx) => ({ kind: "cons", value: c, index: idx }));
-    
-    // Hardcode to 5 columns - ensure each row has exactly 5 items
-    // Calculate how many blanks needed to fill last row to 5 columns
+
     const totalItems = items.length;
     const remainder = totalItems % GRID_COLS;
     const blanksNeeded = remainder > 0 ? GRID_COLS - remainder : 0;
@@ -322,7 +183,6 @@ export default function TypeScreen() {
       items.push({ kind: "blank", value: "", index: -1 });
     }
 
-    // Group items into rows of exactly 5
     const rows: GridItem[][] = [];
     for (let i = 0; i < items.length; i += GRID_COLS) {
       rows.push(items.slice(i, i + GRID_COLS));
@@ -373,7 +233,7 @@ export default function TypeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <Text style={styles.title}>KANNADA TYPEWRITER</Text>
@@ -415,13 +275,13 @@ export default function TypeScreen() {
         {/* Play Mode Audio Button */}
         {gameMode === "play" && (
           <TouchableOpacity
-            style={[styles.playButton, isPlaying && styles.playButtonActive]}
+            style={styles.playButton}
             onPress={handlePlayAudio}
           >
-            <Ionicons name={isPlaying ? "pause" : "play"} size={20} color="#fff" />
+            <Ionicons name="play" size={20} color="#fff" />
             <Ionicons name="volume-high" size={20} color="#fff" />
             <Text style={styles.playButtonText}>
-              {isPlaying ? "Pause" : "Play Varnamale Song"}
+              Play Varnamale Song
             </Text>
           </TouchableOpacity>
         )}
@@ -495,7 +355,7 @@ export default function TypeScreen() {
             <Text style={styles.instructionText}>
               {gameMode === "akshara"
                 ? "Tap consonants to add them. Tap vowels to add pure vowels."
-                : "Tap consonants, then a vowel to complete the akshara. Example: ಕ + ಯ + ಓ = ಕ್ಯೋ"}
+                : "Tap consonants, then a vowel to complete the akshara. Example: \u0C95 + \u0CAF + \u0CCB = \u0C95\u0CCD\u0CAF\u0CCB"}
             </Text>
           </View>
         )}
@@ -579,9 +439,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 16,
     gap: 8,
-  },
-  playButtonActive: {
-    backgroundColor: "#DC2626",
   },
   playButtonText: {
     color: "#fff",
