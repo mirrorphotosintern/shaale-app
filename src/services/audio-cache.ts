@@ -53,6 +53,20 @@ export async function predownloadAudio(urls: string[]): Promise<void> {
 
 // ─── Singleton sound player ───────────────────────────────────────────────────
 let currentSound: Audio.Sound | null = null;
+let audioModeInitialized = false;
+
+async function ensureAudioMode(): Promise<boolean> {
+  if (audioModeInitialized) return true;
+  try {
+    await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+    audioModeInitialized = true;
+    return true;
+  } catch (_) {
+    // Audio session setup failed — likely iOS beta incompatibility.
+    // Continue without it; audio may still work.
+    return false;
+  }
+}
 
 export async function playCachedAudio(url: string): Promise<void> {
   try {
@@ -63,7 +77,7 @@ export async function playCachedAudio(url: string): Promise<void> {
       currentSound = null;
     }
 
-    await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+    await ensureAudioMode();
 
     const localUri = await resolveAudioPath(url);
     const { sound } = await Audio.Sound.createAsync({ uri: localUri });
