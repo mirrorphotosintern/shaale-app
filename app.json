@@ -2,7 +2,9 @@
   "expo": {
     "name": "Shaale",
     "slug": "shaale-app",
+    "scheme": "shaale",
     "version": "1.0.0",
+    "stream": "shaale",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -42,6 +44,9 @@
       "eas": {
         "projectId": "a3796177-30c9-4cb2-aac7-233d0f2bfc2c"
       }
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
