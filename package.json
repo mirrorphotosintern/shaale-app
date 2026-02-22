@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "expo": "55.0.0-preview.12",
-    "expo-av": "^16.0.9-canary-20260119-17896bf",
+    "expo-audio": "^55.0.7",
     "expo-constants": "^55.0.6",
     "expo-linking": "^55.0.5",
     "expo-router": "^55.0.0-preview.9",
