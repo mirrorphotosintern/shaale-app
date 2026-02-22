@@ -12,13 +12,13 @@
     "build:android": "eas build --platform android"
   },
   "dependencies": {
-    "expo": "~54.0.33",
-    "react": "^19.2.4",
-    "react-native": "0.81.5"
+    "expo": "55.0.0-preview.12",
+    "react": "^19.2.0",
+    "react-native": "0.83.1"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
-    "typescript": "~5.9.2"
+    "typescript": "~5.8.3"
   },
   "private": true
 }
