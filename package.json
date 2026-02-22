@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "expo": "55.0.0-preview.12",
+    "expo-av": "^16.0.8",
     "expo-constants": "^55.0.6",
     "expo-linking": "^55.0.5",
     "expo-router": "^55.0.0-preview.9",
