@@ -10,6 +10,13 @@ export default function RootLayout() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="player/[id]"
+        options={{
+          headerShown: false,
+          presentation: "fullScreenModal",
+        }}
+      />
     </Stack>
   );
 }

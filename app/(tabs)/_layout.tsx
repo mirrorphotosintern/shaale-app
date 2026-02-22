@@ -26,8 +26,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Learn",
-          headerTitle: "Learn Kannada",
+          title: "Stream",
+          headerTitle: "Stream",
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22 }}>▶</Text>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="letters"
+        options={{
+          title: "Letters",
+          headerTitle: "Kannada Letters",
           tabBarIcon: ({ color }) => (
             <Text style={{ fontSize: 22 }}>ಅ</Text>
           ),
