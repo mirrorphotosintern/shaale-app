@@ -1,477 +1,357 @@
-// Stream tab screen - renders the Stream feed UI shown under the "Stream" bottom tab
-// Displays videos as a 2-column grid with portrait-cropped thumbnails (2 rows visible on screen)
-
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
-  ActivityIndicator,
-  RefreshControl,
-  useWindowDimensions,
+  Dimensions,
+  Alert,
+  SafeAreaView,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native";
-import { listVideosByCategory } from "../../src/services/videos";
-import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
+import {
+  KANNADA_CONSONANTS,
+  VIRAMA,
+  ANUSVARA,
+  VISARGA,
+  TOP_SWARAS,
+  RIGHT_SWARAS,
+  BOTTOM_SWARAS,
+  LEFT_SWARAS,
+  VOWEL_TO_MATRA_MAP,
+  buildAkshara,
+  splitIntoAksharas,
+} from "../../src/lib/kannada";
 
-const SECTION_MARGIN = 12;
-const GRID_PADDING = 12;
-const GRID_GAP = 12;
-const PORTRAIT_RATIO = 16 / 9; // height = width * (16/9) => portrait container (9:16)
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-function formatDuration(seconds: number | null): string {
-  if (!seconds) return "";
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
+type GameMode = "play" | "akshara" | "ottakshara";
 
-interface VideoThumbnailProps {
-  video: StreamVideo;
-  onPress: () => void;
-  width: number;
-  isLastInRow?: boolean;
-}
+const GRID_COLS = 5;
 
-function VideoThumbnail({ video, onPress, width, isLastInRow }: VideoThumbnailProps) {
+export default function LearnScreen() {
+  const [gameMode, setGameMode] = useState<GameMode>("akshara");
+  const [currentWord, setCurrentWord] = useState("");
+  const [wordsFound, setWordsFound] = useState<string[]>([]);
+  const [score, setScore] = useState(0);
+  const [showModeSelector, setShowModeSelector] = useState(false);
+  const [pendingConsonants, setPendingConsonants] = useState<string[]>([]);
+  const [hasRootSelection, setHasRootSelection] = useState(false);
+
+  const cardSize = Math.min(SCREEN_WIDTH - 32, 400);
+  const tileSize = Math.floor((cardSize * 0.6) / GRID_COLS) - 4;
+  const swaraSize = Math.floor(cardSize * 0.11);
+  const tileFontSize = Math.max(14, Math.floor(tileSize * 0.5));
+  const swaraFontSize = Math.max(14, Math.floor(swaraSize * 0.5));
+
+  const onTapSwara = (swara: string) => {
+    if (gameMode === "play") return;
+
+    if (pendingConsonants.length > 0) {
+      const lastConsonant = pendingConsonants[pendingConsonants.length - 1];
+      const ak = buildAkshara(lastConsonant, swara);
+
+      let newWord = currentWord;
+      for (let i = 0; i < pendingConsonants.length; i++) {
+        if (newWord.endsWith(VIRAMA)) {
+          newWord = newWord.slice(0, -1);
+        }
+        if (newWord.endsWith(pendingConsonants[pendingConsonants.length - 1 - i])) {
+          newWord = newWord.slice(0, -1);
+        }
+      }
+
+      setCurrentWord(newWord + ak);
+      setPendingConsonants([]);
+      setHasRootSelection(false);
+    } else {
+      setCurrentWord((w) => w + swara);
+    }
+  };
+
+  const onTapConsonant = (consonant: string) => {
+    if (gameMode === "play") return;
+
+    if (gameMode === "akshara") {
+      setCurrentWord((w) => w + consonant);
+    } else {
+      const consonantWithVirama = consonant + VIRAMA;
+      setCurrentWord((w) => w + consonantWithVirama);
+      setPendingConsonants((prev) => [...prev, consonant]);
+      setHasRootSelection(true);
+    }
+  };
+
+  const handleBackspace = () => {
+    const aks = splitIntoAksharas(currentWord);
+    if (aks.length === 0) return;
+    setCurrentWord(aks.slice(0, -1).join(""));
+    setPendingConsonants([]);
+    setHasRootSelection(false);
+  };
+
+  const handleSubmit = () => {
+    const word = currentWord.trim();
+    if (!word) return;
+
+    const akLen = splitIntoAksharas(word).length;
+
+    if (gameMode === "akshara" && akLen < 1) {
+      Alert.alert("Invalid", "Need at least 1 akshara");
+      return;
+    }
+
+    if (gameMode === "ottakshara" && akLen < 2) {
+      Alert.alert("Invalid", "Need at least 2 aksharas");
+      return;
+    }
+
+    setWordsFound((prev) => [...prev, word]);
+    setScore((s) => s + 10);
+    setCurrentWord("");
+    setPendingConsonants([]);
+    setHasRootSelection(false);
+  };
+
+  const handleClear = () => {
+    setCurrentWord("");
+    setPendingConsonants([]);
+    setHasRootSelection(false);
+  };
+
+  const renderSwaraButton = (swara: string, key: string) => {
+    const isAnusvara = swara === ANUSVARA;
+    const isVisarga = swara === VISARGA;
+    const displayLabel = isAnusvara ? "\u0C85\u0C82" : isVisarga ? "\u0C85\u0C83" : swara;
+
+    return (
+      <TouchableOpacity
+        key={key}
+        style={[styles.swaraButton, { width: swaraSize, height: swaraSize }]}
+        onPress={() => onTapSwara(swara)}
+        disabled={gameMode === "play"}
+      >
+        <Text style={[styles.swaraText, { fontSize: swaraFontSize }]}>
+          {displayLabel}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderConsonantGrid = () => {
+    type GridItem = { kind: "cons"; value: string } | { kind: "blank" };
+    const items: GridItem[] = KANNADA_CONSONANTS.map((c) => ({ kind: "cons", value: c }));
+
+    const remainder = items.length % GRID_COLS;
+    const blanksNeeded = remainder > 0 ? GRID_COLS - remainder : 0;
+    for (let i = 0; i < blanksNeeded; i++) {
+      items.push({ kind: "blank" });
+    }
+
+    const rows: GridItem[][] = [];
+    for (let i = 0; i < items.length; i += GRID_COLS) {
+      rows.push(items.slice(i, i + GRID_COLS));
+    }
+
+    return (
+      <View style={[styles.consonantGrid, { width: tileSize * GRID_COLS + 8 }]}>
+        {rows.map((row, rowIdx) => (
+          <View key={`row-${rowIdx}`} style={styles.consonantRow}>
+            {row.map((item, colIdx) => {
+              const idx = rowIdx * GRID_COLS + colIdx;
+              if (item.kind === "blank") {
+                return <View key={`blank-${idx}`} style={{ width: tileSize, height: tileSize }} />;
+              }
+
+              const display = gameMode === "ottakshara" ? item.value + VIRAMA : item.value;
+
+              return (
+                <TouchableOpacity
+                  key={`cons-${idx}`}
+                  style={[styles.consonantTile, { width: tileSize, height: tileSize }]}
+                  onPress={() => onTapConsonant(item.value)}
+                  disabled={gameMode === "play"}
+                >
+                  <Text style={[styles.consonantText, { fontSize: tileFontSize }]}>
+                    {display}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   return (
-    <TouchableOpacity
-      style={[
-        styles.thumbnail,
-        { width, marginRight: isLastInRow ? 0 : GRID_GAP },
-      ]}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
-      <View style={[styles.thumbnailImageContainer, { height: Math.floor(width * PORTRAIT_RATIO) }]}>
-        {video.thumbnailUrl ? (
-          <Image
-            source={{ uri: video.thumbnailUrl }}
-            style={styles.thumbnailImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.placeholderImage}>
-            <Ionicons name="play" size={32} color="#9CA3AF" />
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>KANNADA TYPEWRITER</Text>
+
+        {/* Mode Selector */}
+        <TouchableOpacity
+          style={styles.modeSelector}
+          onPress={() => setShowModeSelector(!showModeSelector)}
+        >
+          <Text style={styles.modeSelectorText}>
+            {gameMode === "play" ? "Play (Learn Letters)" : gameMode === "akshara" ? "Akshara Mode" : "Ottakshara Mode"}
+          </Text>
+          <Text style={{ color: "#fff", fontSize: 16 }}>▼</Text>
+        </TouchableOpacity>
+
+        {showModeSelector && (
+          <View style={styles.modeDropdown}>
+            {(["play", "akshara", "ottakshara"] as GameMode[]).map((mode) => (
+              <TouchableOpacity
+                key={mode}
+                style={styles.modeOption}
+                onPress={() => { setGameMode(mode); setShowModeSelector(false); handleClear(); }}
+              >
+                <Text style={styles.modeOptionText}>
+                  {mode === "play" ? "Play (Learn Letters)" : mode === "akshara" ? "Akshara Mode" : "Ottakshara Mode"}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
         )}
-        {/* Play button overlay */}
-        <View style={styles.playOverlay}>
-          <View style={styles.playButton}>
-            <Ionicons name="play" size={20} color="#fff" />
+
+        {/* Word Display */}
+        {gameMode !== "play" && (
+          <View style={styles.wordDisplay}>
+            <Text style={styles.wordText}>{currentWord || "Tap letters to type..."}</Text>
+          </View>
+        )}
+
+        {/* Type Grid */}
+        <View style={[styles.gridContainer, { width: cardSize }]}>
+          <View style={styles.swaraRow}>
+            {TOP_SWARAS.map((s, i) => renderSwaraButton(s, `top-${i}`))}
+          </View>
+
+          <View style={styles.middleSection}>
+            <View style={styles.swaraColumn}>
+              {LEFT_SWARAS.map((s, i) => renderSwaraButton(s, `left-${i}`))}
+            </View>
+            {renderConsonantGrid()}
+            <View style={styles.swaraColumn}>
+              {RIGHT_SWARAS.map((s, i) => renderSwaraButton(s, `right-${i}`))}
+            </View>
+          </View>
+
+          <View style={styles.swaraRow}>
+            {BOTTOM_SWARAS.map((s, i) => renderSwaraButton(s, `bottom-${i}`))}
           </View>
         </View>
-        {/* Duration badge */}
-        {video.durationSeconds && (
-          <View style={styles.durationBadge}>
-            <Text style={styles.durationText}>
-              {formatDuration(video.durationSeconds)}
-            </Text>
+
+        {/* Action Buttons */}
+        {gameMode !== "play" && (
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleBackspace}>
+              <Text style={styles.actionButtonText}>← Back</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={handleClear}>
+              <Text style={styles.actionButtonText}>Clear</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.submitButton]}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.actionButtonText}>Submit</Text>
+            </TouchableOpacity>
           </View>
         )}
-        {/* Pro badge */}
-        {video.tier === "pro" && (
-          <View style={styles.proBadge}>
-            <Text style={styles.proText}>PRO</Text>
-          </View>
-        )}
-      </View>
-      <Text style={styles.videoTitle} numberOfLines={2}>
-        {video.title}
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
-interface VideoSectionProps {
-  section: SectionState;
-  onToggle: () => void;
-  onVideoPress: (video: StreamVideo) => void;
-  onBingeWatch: () => void;
-  thumbnailWidth: number;
-}
-
-function VideoSection({
-  section,
-  onToggle,
-  onVideoPress,
-  onBingeWatch,
-  thumbnailWidth,
-}: VideoSectionProps) {
-  return (
-    <View style={styles.section}>
-      <TouchableOpacity style={styles.sectionHeader} onPress={onToggle}>
-        <View>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          <Text style={styles.sectionCount}>
-            {section.videos.length} videos
+        {/* Instructions */}
+        <View style={styles.instructions}>
+          <Text style={styles.instructionText}>
+            {gameMode === "play"
+              ? "Listen and learn each Kannada letter."
+              : gameMode === "akshara"
+              ? "Tap consonants to add them. Tap vowels to add pure vowels."
+              : "Tap consonants, then a vowel to complete the akshara. Example: ಕ + ಯ + ೋ = ಕ್ಯೋ"}
           </Text>
         </View>
-        <View style={styles.sectionActions}>
-          {section.isExpanded && section.videos.length > 0 && (
-            <TouchableOpacity
-              style={styles.bingeButton}
-              onPress={(e) => {
-                e.stopPropagation();
-                onBingeWatch();
-              }}
-            >
-              <Text style={styles.bingeButtonText}>Binge Watch</Text>
-            </TouchableOpacity>
-          )}
-          <Ionicons
-            name={section.isExpanded ? "chevron-up" : "chevron-down"}
-            size={24}
-            color="#9CA3AF"
-          />
-        </View>
-      </TouchableOpacity>
 
-      {section.isExpanded && (
-        <View style={styles.videoGrid}>
-          {section.videos.length > 0 ? (
-            section.videos.map((video, index) => (
-              <VideoThumbnail
-                key={video.id}
-                video={video}
-                onPress={() => onVideoPress(video)}
-                width={thumbnailWidth}
-                isLastInRow={index % 2 === 1}
-              />
-            ))
-          ) : (
-            <Text style={styles.noVideosText}>No videos yet</Text>
-          )}
-        </View>
-      )}
-    </View>
-  );
-}
-
-export default function StreamScreen() {
-  const router = useRouter();
-  const { width: screenWidth } = useWindowDimensions();
-  // 2-column layout: screen - section margins - grid padding - gap between columns
-  const thumbnailWidth = Math.floor(
-    (screenWidth - (SECTION_MARGIN * 2) - (GRID_PADDING * 2) - GRID_GAP) / 2
-  );
-
-  const [sections, setSections] = useState<SectionState[]>([
-    { title: "Rhymes", key: "rhymes", videos: [], isExpanded: true },
-    { title: "Stories", key: "stories", videos: [], isExpanded: true },
-    { title: "Numbers", key: "numbers", videos: [], isExpanded: true },
-    { title: "Letters", key: "letters", videos: [], isExpanded: true },
-  ]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchVideos = useCallback(async () => {
-    try {
-      setError(null);
-      const [rhymes, stories, numbers, letters] = await Promise.all([
-        listVideosByCategory("rhymes"),
-        listVideosByCategory("stories"),
-        listVideosByCategory("numbers"),
-        listVideosByCategory("letters"),
-      ]);
-
-      setSections((prev) =>
-        prev.map((s) => {
-          const videos =
-            s.key === "rhymes"
-              ? rhymes
-              : s.key === "stories"
-              ? stories
-              : s.key === "numbers"
-              ? numbers
-              : letters;
-          return { ...s, videos };
-        })
-      );
-    } catch (err) {
-      console.error("[Stream] Error fetching videos:", err);
-      setError(err instanceof Error ? err.message : "Failed to load videos");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchVideos();
-  }, [fetchVideos]);
-
-  const handleRefresh = useCallback(() => {
-    setIsRefreshing(true);
-    fetchVideos();
-  }, [fetchVideos]);
-
-  const toggleSection = useCallback((key: VideoCategory) => {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.key === key ? { ...s, isExpanded: !s.isExpanded } : s
-      )
-    );
-  }, []);
-
-  const handleVideoPress = useCallback(
-    (video: StreamVideo, sectionKey: VideoCategory) => {
-      const section = sections.find((s) => s.key === sectionKey);
-      const videoIndex = section?.videos.findIndex((v) => v.id === video.id) ?? 0;
-
-      router.push({
-        pathname: "/player/[id]",
-        params: {
-          id: video.id,
-          hlsUrl: video.hls_link,
-          title: video.title,
-          sectionKey,
-          videoIndex: videoIndex.toString(),
-          isBinge: "false",
-        },
-      });
-    },
-    [router, sections]
-  );
-
-  const handleBingeWatch = useCallback(
-    (sectionKey: VideoCategory) => {
-      const section = sections.find((s) => s.key === sectionKey);
-      if (!section || section.videos.length === 0) return;
-
-      const firstVideo = section.videos[0];
-      router.push({
-        pathname: "/player/[id]",
-        params: {
-          id: firstVideo.id,
-          hlsUrl: firstVideo.hls_link,
-          title: firstVideo.title,
-          sectionKey,
-          videoIndex: "0",
-          isBinge: "true",
-        },
-      });
-    },
-    [router, sections]
-  );
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
-          <Text style={styles.loadingText}>Loading videos...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (error) {
-    return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle" size={48} color="#EF4444" />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchVideos}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor="#8B5CF6"
-          />
-        }
-      >
-        {sections.map((section) => (
-          <VideoSection
-            key={section.key}
-            section={section}
-            onToggle={() => toggleSection(section.key)}
-            onVideoPress={(video) => handleVideoPress(video, section.key)}
-            onBingeWatch={() => handleBingeWatch(section.key)}
-            thumbnailWidth={thumbnailWidth}
-          />
-        ))}
+        {/* Words Found */}
+        {gameMode !== "play" && wordsFound.length > 0 && (
+          <View style={styles.wordsFound}>
+            <Text style={styles.wordsFoundTitle}>Words Found: {wordsFound.length}</Text>
+            <View style={styles.wordsList}>
+              {wordsFound.map((word, idx) => (
+                <View key={idx} style={styles.wordBadge}>
+                  <Text style={styles.wordBadgeText}>{word}</Text>
+                </View>
+              ))}
+            </View>
+            <Text style={styles.scoreText}>Score: {score}</Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#111827",
+  container: { flex: 1, backgroundColor: "#111827" },
+  scrollView: { flex: 1 },
+  scrollContent: { alignItems: "center", paddingVertical: 16, paddingHorizontal: 16 },
+  title: { fontSize: 22, fontWeight: "bold", color: "#fff", marginBottom: 16, textAlign: "center" },
+  modeSelector: {
+    flexDirection: "row", alignItems: "center", backgroundColor: "#4F46E5",
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginBottom: 12, gap: 8,
   },
-  scrollView: {
-    flex: 1,
+  modeSelectorText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  modeDropdown: { backgroundColor: "#1F2937", borderRadius: 8, marginBottom: 12, overflow: "hidden" },
+  modeOption: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#374151" },
+  modeOptionText: { color: "#fff", fontSize: 14 },
+  wordDisplay: {
+    width: "100%", backgroundColor: "rgba(0,128,128,0.3)", borderWidth: 2,
+    borderColor: "#000", borderRadius: 8, padding: 12, marginBottom: 12, minHeight: 50,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  wordText: { fontSize: 24, fontWeight: "bold", color: "#fff", textAlign: "center" },
+  gridContainer: {
+    alignItems: "center", backgroundColor: "#1F2937", borderRadius: 16, padding: 12, marginBottom: 16,
   },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#9CA3AF",
+  swaraRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginVertical: 6 },
+  swaraColumn: { justifyContent: "center", gap: 6 },
+  middleSection: { flexDirection: "row", alignItems: "center", gap: 8 },
+  swaraButton: {
+    backgroundColor: "#FEF3C7", borderRadius: 6, justifyContent: "center",
+    alignItems: "center", borderWidth: 1, borderColor: "#9CA3AF",
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+  swaraText: { color: "#1F2937", fontWeight: "bold" },
+  consonantGrid: {
+    flexDirection: "column", justifyContent: "center", backgroundColor: "#E5E7EB",
+    borderRadius: 10, padding: 4, gap: 2,
   },
-  errorText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#9CA3AF",
-    textAlign: "center",
+  consonantRow: { flexDirection: "row", justifyContent: "center", gap: 2 },
+  consonantTile: {
+    backgroundColor: "#fff", borderRadius: 6, justifyContent: "center",
+    alignItems: "center", borderWidth: 1, borderColor: "#D1D5DB",
   },
-  retryButton: {
-    marginTop: 16,
-    backgroundColor: "#8B5CF6",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+  consonantText: { color: "#1F2937", fontWeight: "bold" },
+  actionButtons: { flexDirection: "row", gap: 10, marginBottom: 16 },
+  actionButton: {
+    backgroundColor: "#374151", paddingHorizontal: 16, paddingVertical: 10,
+    borderRadius: 8, borderWidth: 2, borderColor: "#1F2937",
   },
-  retryButtonText: {
-    color: "#fff",
-    fontWeight: "600",
+  submitButton: { backgroundColor: "#2563EB" },
+  actionButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
+  instructions: {
+    backgroundColor: "#1F2937", borderRadius: 8, padding: 12, marginBottom: 16, width: "100%",
   },
-  section: {
-    marginBottom: 16,
-    backgroundColor: "#1F2937",
-    marginHorizontal: SECTION_MARGIN,
-    borderRadius: 12,
-    overflow: "hidden",
+  instructionText: { color: "#9CA3AF", fontSize: 12, textAlign: "center" },
+  wordsFound: {
+    backgroundColor: "#14532D", borderRadius: 12, padding: 16, width: "100%",
+    borderWidth: 2, borderColor: "#22C55E",
   },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
+  wordsFoundTitle: { color: "#fff", fontSize: 14, fontWeight: "bold", textAlign: "center", marginBottom: 8 },
+  wordsList: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6, marginBottom: 8 },
+  wordBadge: {
+    backgroundColor: "#fff", borderWidth: 2, borderColor: "#22C55E",
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  sectionCount: {
-    fontSize: 12,
-    color: "#9CA3AF",
-    marginTop: 2,
-  },
-  sectionActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  bingeButton: {
-    backgroundColor: "#8B5CF6",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  bingeButtonText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  videoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    paddingHorizontal: GRID_PADDING,
-    paddingBottom: 16,
-    justifyContent: "flex-start",
-  },
-  thumbnail: {
-    marginBottom: 12,
-  },
-  thumbnailImageContainer: {
-    width: "100%",
-    borderRadius: 8,
-    overflow: "hidden",
-    backgroundColor: "#374151",
-  },
-  thumbnailImage: {
-    width: "100%",
-    height: "100%",
-  },
-  placeholderImage: {
-    width: "100%",
-    height: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#374151",
-  },
-  playOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.3)",
-  },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  durationBadge: {
-    position: "absolute",
-    bottom: 4,
-    right: 4,
-    backgroundColor: "rgba(0,0,0,0.8)",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  durationText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  proBadge: {
-    position: "absolute",
-    top: 4,
-    left: 4,
-    backgroundColor: "#8B5CF6",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  proText: {
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: "bold",
-  },
-  videoTitle: {
-    marginTop: 8,
-    fontSize: 12,
-    color: "#E5E7EB",
-    textAlign: "center",
-  },
-  noVideosText: {
-    color: "#9CA3AF",
-    textAlign: "center",
-    width: "100%",
-    paddingVertical: 20,
-  },
+  wordBadgeText: { color: "#166534", fontSize: 14, fontWeight: "600" },
+  scoreText: { color: "#86EFAC", fontSize: 14, fontWeight: "bold", textAlign: "center" },
 });

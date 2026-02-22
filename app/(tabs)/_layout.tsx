@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Text } from "react-native";
 
 export default function TabLayout() {
   return (
@@ -18,65 +18,29 @@ export default function TabLayout() {
           fontSize: 12,
           fontWeight: "600",
         },
-        headerStyle: {
-          backgroundColor: "#4F46E5",
-        },
+        headerStyle: { backgroundColor: "#4F46E5" },
         headerTintColor: "#fff",
-        headerTitleStyle: {
-          fontWeight: "bold",
-        },
+        headerTitleStyle: { fontWeight: "bold" },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Stream",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="play-circle" size={size} color={color} />
+          title: "Learn",
+          headerTitle: "Learn Kannada",
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22 }}>ಅ</Text>
           ),
-          headerTitle: "Stream",
         }}
       />
       <Tabs.Screen
         name="quiz"
         options={{
           title: "Quiz",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="help-circle" size={size} color={color} />
-          ),
           headerTitle: "Quiz",
-          headerStyle: {
-            backgroundColor: "#F2F2F7",
-          },
-          headerTintColor: "#1C1C1E",
-          headerTitleStyle: {
-            fontWeight: "bold",
-            color: "#1C1C1E",
-          },
-          headerShadowVisible: false,
-        }}
-      />
-      <Tabs.Screen
-        name="letters"
-        options={{
-          title: "Learn",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
+          tabBarIcon: ({ color }) => (
+            <Text style={{ fontSize: 22 }}>?</Text>
           ),
-          headerTitle: "Learn",
-        }}
-      />
-      {/* Hide unused tabs */}
-      <Tabs.Screen
-        name="stream"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          href: null,
         }}
       />
     </Tabs>
