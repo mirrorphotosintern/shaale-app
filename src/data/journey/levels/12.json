@@ -1,0 +1,89 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Monkey King's Test",
+        "description": "A rope bridge — the only way forward — blocked by a Monkey King on a throne of branches. He barks Kannada commands: \"ಹೋಗು! ಬಾ! ನೋಡು! ಕೊಡು!\" (Go! Come! Look! Give!)\n\nGunda answers each verb. Gubbi performs each action perfectly. The Monkey King bows, gestures to the bridge, and hands Gunda a shortcut map. Arjun arrives at the ravine just as Gunda crosses.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/study.png",
+        "question": "The Monkey King tests Gunda! Meanwhile — do you like to study?",
+        "options": ["Yes!", "Sometimes", "No"],
+        "correct_answer": ["Yes!", "Sometimes", "No"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/run.png",
+        "question": "When the mother told him to study, what did the boy do?",
+        "options": ["ಓಡಿದನು", "ಓದು", "ಓಂಕಾರ", "ಕುಳಿತುಕೊಂಡ"],
+        "correct_answer": "ಓಡಿದನು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/omkara.png",
+        "question": "The mother told him to chant 'Om' ten times. What is the Kannada word for 'Om chanting'?",
+        "options": ["ಓಂಕಾರ", "ಓದು", "ಓಡಿದನು", "ಅಮ್ಮ"],
+        "correct_answer": "ಓಂಕಾರ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/study.png",
+        "question": "After chanting Om, the boy sat down calmly. What do we call studying or reading in Kannada?",
+        "options": ["ಓದು", "ಓಂಕಾರ", "ಓಡಿದನು", "ಆಟ"],
+        "correct_answer": "ಓದು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-answer-quiz",
+      "content": {
+        "question": "Which of these shows ಓದು (studying)?",
+        "options": [
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/study.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/squirrel.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/cat.png"
+        ],
+        "correct_answer": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-12/study.png"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 3 new Kannada words from ಓ — ಓಡಿ (ran), ಓಂಕಾರ (Om chanting), ಓದು (study)! Gunda is now AHEAD of Arjun!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 12
+    }
+  ]
+}

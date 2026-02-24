@@ -1,0 +1,73 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Aame's Riddle",
+        "description": "The path is blocked by an old tortoise (Aame) sitting dead center. They wait. Aame doesn't move. Gunda tries to go around — Aame slowly swivels to face him again.\n\nAame speaks in a slow Kannada riddle. Gunda listens hard, uses question words to answer correctly. Aame considers for a long moment... then shuffles to the side. As Gunda passes, Aame says one more thing. Gunda: \"What did that mean?\" Gubbi shrugs.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-9/beating.png",
+        "question": "The wise tortoise waits for Gunda! Did you ever get a small scolding from your father in childhood?",
+        "options": ["Yes", "No", "Sometimes"],
+        "correct_answer": ["Yes", "Sometimes"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-9/boy_crab.png",
+        "question": "The boy found a small crab outside his home! What do we call a crab in Kannada?",
+        "options": ["ಏಡಿ", "ಏಣಿ", "ಏಟು", "ಮೀನು"],
+        "correct_answer": "ಏಡಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-9/ladder.png",
+        "question": "The crab climbed on top of the roof! What did the boy use to climb up?",
+        "options": ["ಏಣಿ", "ಏಡಿ", "ಏಟು", "ಕಡಗ"],
+        "correct_answer": "ಏಣಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-9/beating.png",
+        "question": "The father shouted, 'ಏಟು ಬೇಕಾ?' What does 'ಏಟು' mean in Kannada?",
+        "options": ["Beating", "Playing", "Running", "Crying"],
+        "correct_answer": "Beating"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 3 new Kannada words — ಏಡಿ (crab), ಏಣಿ (ladder), ಏಟು (beating)! Gubbi took three wobbly steps!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 9
+    }
+  ]
+}

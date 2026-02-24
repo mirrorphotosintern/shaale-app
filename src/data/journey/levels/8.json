@@ -1,0 +1,73 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Lake Mirror",
+        "description": "Dawn. They arrive at a perfectly still forest lake. Gubbi walks to the water's edge and sees her reflection. Tilts head left — reflection tilts left. Chirps at it.\n\nGunda laughs — his first real laugh of the journey. He crouches beside her and says her name in Kannada. Gubbi looks at the reflection, then at Gunda, then back. Something clicks. She puffs up proudly.",
+        "videoUrl": null,
+        "duration": "15 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-8/ladduprep.png",
+        "question": "Gubbi saw its reflection at the lake! Meanwhile — do you help your mom while cooking?",
+        "options": ["Yes!", "Sometimes"],
+        "correct_answer": ["Yes!", "Sometimes"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-8/number8.png",
+        "question": "How many laddus did the boy ask his mother to make?",
+        "options": ["ಎಂಟು", "ಐದು", "ಮೂರು", "ಒಂಬತ್ತು"],
+        "correct_answer": "ಎಂಟು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-8/leaf.png",
+        "question": "The mother serves laddus on what? Look carefully at the picture!",
+        "options": ["ಎಲೆ", "ತಟ್ಟೆ", "ಗಾಜು", "ಕಪ್"],
+        "correct_answer": "ಎಲೆ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-8/yemme.png",
+        "question": "Suddenly, who came near the laddus and ate them?",
+        "options": ["ಎಮ್ಮೆ", "ಆನೆ", "ಬೆಕ್ಕು", "ನಾಯಿ"],
+        "correct_answer": "ಎಮ್ಮೆ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 3 new Kannada words — ಎಂಟು (eight), ಎಲೆ (leaf), ಎಮ್ಮೆ (buffalo)! Gubbi flapped its wings awkwardly!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 8
+    }
+  ]
+}

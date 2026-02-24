@@ -1,0 +1,87 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Night in the Forest",
+        "description": "Dusk. Gunda makes camp — small fire, lean-to shelter. Gubbi's egg glows warmly in his hands. A soft whimper breaks the silence.\n\nHe holds up his lamp: a baby deer stands in the moonlight, lost and crying softly. Gunda speaks Kannada gently. The deer calms... then turns and leads him down a narrow path he hadn't noticed — the safe way forward.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-4/swim-kid-swim.jpeg",
+        "question": "A baby deer cried in the night. Meanwhile, this kid is swimming! Do you like swimming too?",
+        "options": ["Yessss!", "No, I still need to learn!"],
+        "correct_answer": ["Yessss!", "No, I still need to learn!"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is swimming called in Kannada?",
+        "options": ["ಈಶ್ವರ", "ಈಜು", "ಈಟಿ"],
+        "correct_answer": "ಈಜು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-4/lord-shiva.jpeg",
+        "question": "How do we write Lord Eshwara's name in Kannada?",
+        "options": ["ಈಟಿ", "ಈಶ್ವರ", "ಈಜು", "ಈದಿನ"],
+        "correct_answer": "ಈಶ್ವರ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is a spear called in Kannada?",
+        "options": ["ಈಶ್ವರ", "ಈಜು", "ಈಟಿ", "ಈದಿನ"],
+        "correct_answer": "ಈಟಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-answer-quiz",
+      "content": {
+        "question": "Which of these shows an ಇಲಿ (mouse)?",
+        "options": [
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/butterfly.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/squirrel.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/cat.png"
+        ],
+        "correct_answer": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "finish",
+      "type": "text",
+      "content": "We're done with four letters! Gunda comforted the baby deer. It showed him the safe path forward!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 4
+    }
+  ]
+}

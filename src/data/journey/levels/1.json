@@ -1,0 +1,48 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Goodbye",
+        "description": "Gunda at the door, bag on his back with the egg inside. Amma holds his face in both hands for a moment. Appa gives a firm shoulder pat. The building watchman waves. A neighbour aunty calls from her balcony. His friend from downstairs runs up for a fistbump.\n\nGunda looks back once at the building. Then turns and walks. City gives way to road. Road gives way to treeline. Karadi Betta ahead.",
+        "videoUrl": null,
+        "duration": "15 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do you call your mother in Kannada?",
+        "options": ["ಅಪ್ಪ", "ಅಮ್ಮ", "ಅಣ್ಣ", "ಅಕ್ಕ"],
+        "correct_answer": "ಅಮ್ಮ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/bega-load-aagutte/ajji.png",
+        "question": "Gunda's Ajji sent him a letter. Who does this image show?",
+        "options": ["ಅಣ್ಣ", "ಅಪ್ಪ", "ಅಜ್ಜಿ", "ಅಜ್ಜ"],
+        "correct_answer": "ಅಜ್ಜಿ"
+      },
+      "animation": "slide-up"
+    },
+    {
+      "screen": 3,
+      "condition": "finish",
+      "type": "text",
+      "content": "Great job! You've learned your first Kannada letter ಅ. The egg glows warm for the first time!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 1
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Gubbi Sings — 🕊️ Milestone",
+        "description": "Fourteen letters learned. Gunda and Arjun stand at the summit entrance together.\n\nGubbi steps onto a flat stone in the summit clearing, opens her wings — full electric blue — and begins to sing. Each note is a word they learned. The mist moves. The Karadi bear steps from the forest into the light, ancient and calm. It looks at Gubbi. Then at Gunda. Then walks back into the mountain. Gubbi lands on Gunda's shoulder. Far below in the haze: the lights of Bengaluru. Home.",
+        "videoUrl": null,
+        "duration": "60 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "Ajji's village is in sight! ಅಃ is called Visarga. 'ದುಃಖ' means sadness. Can you find another ಅಃ word?",
+        "options": ["ಸುಃ", "ಪ್ರಃ", "ನಮಃ", "ಅಜ್ಜಿ"],
+        "correct_answer": "ನಮಃ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What does 'ದುಃಖ' mean in English?",
+        "options": ["Sadness", "Happiness", "Anger", "Sleep"],
+        "correct_answer": "Sadness"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "Gunda finally reaches the summit! How many letters of Kannada have you learned?",
+        "options": ["15 — all the swaras!", "5", "10", "20"],
+        "correct_answer": "15 — all the swaras!"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "finish",
+      "type": "text",
+      "content": "🎊 YOU DID IT! All 15 letters learned! Gubbi spreads her wings and flies! The Karadi bear appeared — just like Appa said it would. ಮನೆ ಹೊಡಾ!",
+      "animation": "fade-out",
+      "button": "Celebrate!",
+      "coin": 15
+    }
+  ]
+}

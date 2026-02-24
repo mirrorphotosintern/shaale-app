@@ -1,0 +1,84 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Aane Lets Him Through",
+        "description": "The forest entrance. A massive Aane stands directly across the path, still as stone. Gunda tries to go around — the Aane shifts to block him. He tries the other side — blocked again.\n\nThen a soft crackling sound from his bag. The egg, stirring.\n\nThe Aane goes completely still. Lowers its enormous head toward the bag. Takes one long breath through its trunk. Then steps aside — deliberate, respectful — and watches Gunda walk through.\n\nThe forest recognised the egg before Gunda did.",
+        "videoUrl": null,
+        "duration": "15 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-2/screen-1.png",
+        "question": "A big animal blocks Gunda's path! When do elephants usually yawn?",
+        "options": [
+          "When a lesson starts",
+          "When I'm tired from playing",
+          "When my sleep time approaches"
+        ],
+        "correct_answer": [
+          "When a lesson starts",
+          "When I'm tired from playing",
+          "When my sleep time approaches"
+        ]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is yawning called in Kannada?",
+        "options": ["ಆಕಳಿಸು", "ಆನೆ", "ಆಕಾಶ"],
+        "correct_answer": "ಆಕಳಿಸು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-answer-quiz",
+      "content": {
+        "question": "Which of these shows an ಆನೆ (elephant)?",
+        "options": [
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/elephant.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/squirrel.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/lion.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/tiger_cub.png"
+        ],
+        "correct_answer": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/elephant.png"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-2/screen-12.png",
+        "question": "'ನನಗೆ ಆಕಾಶ ಎಂದರೆ ತುಂಬಾ ಇಷ್ಟ!' — which word here means sky?",
+        "options": ["ನನಗೆ", "ಎಂದರೆ", "ಆಕಾಶ", "ಇಷ್ಟ"],
+        "correct_answer": "ಆಕಾಶ"
+      },
+      "animation": "slide-up"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "Great job! You learned two letters already! The Aane recognised the egg — the forest is watching Gunda. Gundana Yatre continues!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 2
+    }
+  ]
+}

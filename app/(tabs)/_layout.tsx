@@ -36,10 +36,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="letters"
         options={{
-          title: "Letters",
-          headerTitle: "Kannada Letters",
+          title: "Journey",
+          headerTitle: "Gundana Yatre",
           tabBarIcon: ({ color }) => (
-            <Text style={{ fontSize: 22 }}>ಅ</Text>
+            <Text style={{ fontSize: 22 }}>🗺️</Text>
           ),
         }}
       />

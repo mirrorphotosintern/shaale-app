@@ -1,0 +1,97 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Fall",
+        "description": "Narrow mountain paths. Stone ledges. Gubbi runs ahead on a log, showing off her blue wings. She misjudges a jump — falls.\n\nGunda lunges. Misses. Time slows — and then Bekku is there, paw extended, catching Gubbi mid-fall. Sets her down gently. They've been followed the whole time. Gubbi stands up, takes five determined steps forward.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/compressed-journey-images/level-7.png",
+        "question": "Gubbi fell from a branch — the Cat helped! Do you like holige (obbattu)?",
+        "options": ["Yes!", "Sometimes", "No"],
+        "correct_answer": ["Yes!", "Sometimes", "No"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/compressed-journey-images/level-7.png",
+        "question": "The family made this tasty sweet for the festival. What is this sweet called in Kannada?",
+        "options": ["ಒಬ್ಬಟ್ಟು", "ಒಗ್ಗಟ್ಟು", "ಒಬ್ಬ", "ಒಟ್ಟಿಗೆ"],
+        "correct_answer": "ಒಬ್ಬಟ್ಟು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-11/unity.png",
+        "question": "Everyone played together and made the team win! What do we call this unity or teamwork in Kannada?",
+        "options": ["ಒಗ್ಗಟ್ಟು", "ರಾಜಕೀಯ", "ಒಬ್ಬ", "ಆಚಾರ್ಯ"],
+        "correct_answer": "ಒಗ್ಗಟ್ಟು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-11/together.png",
+        "question": "After cooking, the family sat down and started eating. What do we call doing something together in Kannada?",
+        "options": ["ಒಟ್ಟಿಗೆ", "ಎಲೆ", "ಒಬ್ಬಟ್ಟು", "ಐವತ್ತು"],
+        "correct_answer": "ಒಟ್ಟಿಗೆ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-11/single.png",
+        "question": "A boy sits alone in the playground, no friends. What do we call one person in Kannada?",
+        "options": ["ಊಟ", "ಆಕಾಶ", "ಮನೆ", "ಒಬ್ಬ"],
+        "correct_answer": "ಒಬ್ಬ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/one.png",
+        "question": "The boy had only one holige left on his plate. What do we call 'one' in Kannada?",
+        "options": ["ಒಂದು", "ಒಬ್ಬ", "ಒಟ್ಟಿಗೆ", "ಒಗ್ಗಟ್ಟು"],
+        "correct_answer": "ಒಂದು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 7,
+      "condition": "finish",
+      "type": "text",
+      "content": "Superb! You learned 5 new Kannada words from ಒ! Gubbi stood tall — the Cat was a friend all along!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 11
+    }
+  ]
+}

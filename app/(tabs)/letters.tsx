@@ -1,357 +1,365 @@
-import { useState } from "react";
+import { useState, useCallback } from "react"
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-  Alert,
   SafeAreaView,
-} from "react-native";
+} from "react-native"
+import { useRouter, useFocusEffect } from "expo-router"
+import { LEVEL_CONFIGS } from "../../src/data/journey/journey-config"
 import {
-  KANNADA_CONSONANTS,
-  VIRAMA,
-  ANUSVARA,
-  VISARGA,
-  TOP_SWARAS,
-  RIGHT_SWARAS,
-  BOTTOM_SWARAS,
-  LEFT_SWARAS,
-  VOWEL_TO_MATRA_MAP,
-  buildAkshara,
-  splitIntoAksharas,
-} from "../../src/lib/kannada";
+  loadProgress,
+  isLevelUnlocked,
+} from "../../src/services/journey-progress"
+import { JourneyProgress } from "../../src/types/journey"
+import GundaCompanion from "../../src/components/journey/GundaCompanion"
+import AjjiLetter from "../../src/components/journey/AjjiLetter"
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+export default function JourneyMapScreen() {
+  const router = useRouter()
+  const [progress, setProgress] = useState<JourneyProgress | null>(null)
+  const [showAjjiLetter, setShowAjjiLetter] = useState<5 | 10 | 15 | null>(null)
 
-type GameMode = "play" | "akshara" | "ottakshara";
-
-const GRID_COLS = 5;
-
-export default function LettersScreen() {
-  const [gameMode, setGameMode] = useState<GameMode>("akshara");
-  const [currentWord, setCurrentWord] = useState("");
-  const [wordsFound, setWordsFound] = useState<string[]>([]);
-  const [score, setScore] = useState(0);
-  const [showModeSelector, setShowModeSelector] = useState(false);
-  const [pendingConsonants, setPendingConsonants] = useState<string[]>([]);
-  const [hasRootSelection, setHasRootSelection] = useState(false);
-
-  const cardSize = Math.min(SCREEN_WIDTH - 32, 400);
-  const tileSize = Math.floor((cardSize * 0.6) / GRID_COLS) - 4;
-  const swaraSize = Math.floor(cardSize * 0.11);
-  const tileFontSize = Math.max(14, Math.floor(tileSize * 0.5));
-  const swaraFontSize = Math.max(14, Math.floor(swaraSize * 0.5));
-
-  const onTapSwara = (swara: string) => {
-    if (gameMode === "play") return;
-
-    if (pendingConsonants.length > 0) {
-      const lastConsonant = pendingConsonants[pendingConsonants.length - 1];
-      const ak = buildAkshara(lastConsonant, swara);
-
-      let newWord = currentWord;
-      for (let i = 0; i < pendingConsonants.length; i++) {
-        if (newWord.endsWith(VIRAMA)) {
-          newWord = newWord.slice(0, -1);
+  useFocusEffect(
+    useCallback(() => {
+      loadProgress().then((p) => {
+        setProgress(p)
+        // Check if a milestone was just reached and letter not yet seen
+        const milestones: (5 | 10 | 15)[] = [5, 10, 15]
+        for (const m of milestones) {
+          if (p.completedLevels.includes(m) && !p.ajjiLettersSeen.includes(m)) {
+            setShowAjjiLetter(m)
+            break
+          }
         }
-        if (newWord.endsWith(pendingConsonants[pendingConsonants.length - 1 - i])) {
-          newWord = newWord.slice(0, -1);
-        }
-      }
+      })
+    }, [])
+  )
 
-      setCurrentWord(newWord + ak);
-      setPendingConsonants([]);
-      setHasRootSelection(false);
-    } else {
-      setCurrentWord((w) => w + swara);
+  const handleLevelPress = (level: number) => {
+    if (!progress) return
+    if (!isLevelUnlocked(level, progress.completedLevels)) return
+    router.push(`/journey/${level}` as any)
+  }
+
+  const handleAjjiLetterClose = async () => {
+    setShowAjjiLetter(null)
+    if (showAjjiLetter && progress) {
+      const { markAjjiLetterSeen } = await import("../../src/services/journey-progress")
+      await markAjjiLetterSeen(showAjjiLetter)
+      const updated = await loadProgress()
+      setProgress(updated)
     }
-  };
+  }
 
-  const onTapConsonant = (consonant: string) => {
-    if (gameMode === "play") return;
-
-    if (gameMode === "akshara") {
-      setCurrentWord((w) => w + consonant);
-    } else {
-      const consonantWithVirama = consonant + VIRAMA;
-      setCurrentWord((w) => w + consonantWithVirama);
-      setPendingConsonants((prev) => [...prev, consonant]);
-      setHasRootSelection(true);
-    }
-  };
-
-  const handleBackspace = () => {
-    const aks = splitIntoAksharas(currentWord);
-    if (aks.length === 0) return;
-    setCurrentWord(aks.slice(0, -1).join(""));
-    setPendingConsonants([]);
-    setHasRootSelection(false);
-  };
-
-  const handleSubmit = () => {
-    const word = currentWord.trim();
-    if (!word) return;
-
-    const akLen = splitIntoAksharas(word).length;
-
-    if (gameMode === "akshara" && akLen < 1) {
-      Alert.alert("Invalid", "Need at least 1 akshara");
-      return;
-    }
-
-    if (gameMode === "ottakshara" && akLen < 2) {
-      Alert.alert("Invalid", "Need at least 2 aksharas");
-      return;
-    }
-
-    setWordsFound((prev) => [...prev, word]);
-    setScore((s) => s + 10);
-    setCurrentWord("");
-    setPendingConsonants([]);
-    setHasRootSelection(false);
-  };
-
-  const handleClear = () => {
-    setCurrentWord("");
-    setPendingConsonants([]);
-    setHasRootSelection(false);
-  };
-
-  const renderSwaraButton = (swara: string, key: string) => {
-    const isAnusvara = swara === ANUSVARA;
-    const isVisarga = swara === VISARGA;
-    const displayLabel = isAnusvara ? "\u0C85\u0C82" : isVisarga ? "\u0C85\u0C83" : swara;
-
+  if (!progress) {
     return (
-      <TouchableOpacity
-        key={key}
-        style={[styles.swaraButton, { width: swaraSize, height: swaraSize }]}
-        onPress={() => onTapSwara(swara)}
-        disabled={gameMode === "play"}
-      >
-        <Text style={[styles.swaraText, { fontSize: swaraFontSize }]}>
-          {displayLabel}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const renderConsonantGrid = () => {
-    type GridItem = { kind: "cons"; value: string } | { kind: "blank" };
-    const items: GridItem[] = KANNADA_CONSONANTS.map((c) => ({ kind: "cons", value: c }));
-
-    const remainder = items.length % GRID_COLS;
-    const blanksNeeded = remainder > 0 ? GRID_COLS - remainder : 0;
-    for (let i = 0; i < blanksNeeded; i++) {
-      items.push({ kind: "blank" });
-    }
-
-    const rows: GridItem[][] = [];
-    for (let i = 0; i < items.length; i += GRID_COLS) {
-      rows.push(items.slice(i, i + GRID_COLS));
-    }
-
-    return (
-      <View style={[styles.consonantGrid, { width: tileSize * GRID_COLS + 8 }]}>
-        {rows.map((row, rowIdx) => (
-          <View key={`row-${rowIdx}`} style={styles.consonantRow}>
-            {row.map((item, colIdx) => {
-              const idx = rowIdx * GRID_COLS + colIdx;
-              if (item.kind === "blank") {
-                return <View key={`blank-${idx}`} style={{ width: tileSize, height: tileSize }} />;
-              }
-
-              const display = gameMode === "ottakshara" ? item.value + VIRAMA : item.value;
-
-              return (
-                <TouchableOpacity
-                  key={`cons-${idx}`}
-                  style={[styles.consonantTile, { width: tileSize, height: tileSize }]}
-                  onPress={() => onTapConsonant(item.value)}
-                  disabled={gameMode === "play"}
-                >
-                  <Text style={[styles.consonantText, { fontSize: tileFontSize }]}>
-                    {display}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
-      </View>
-    );
-  };
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loading}>
+          <Text style={styles.loadingText}>Loading journey...</Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>KANNADA TYPEWRITER</Text>
-
-        {/* Mode Selector */}
-        <TouchableOpacity
-          style={styles.modeSelector}
-          onPress={() => setShowModeSelector(!showModeSelector)}
-        >
-          <Text style={styles.modeSelectorText}>
-            {gameMode === "play" ? "Play (Learn Letters)" : gameMode === "akshara" ? "Akshara Mode" : "Ottakshara Mode"}
-          </Text>
-          <Text style={{ color: "#fff", fontSize: 16 }}>▼</Text>
-        </TouchableOpacity>
-
-        {showModeSelector && (
-          <View style={styles.modeDropdown}>
-            {(["play", "akshara", "ottakshara"] as GameMode[]).map((mode) => (
-              <TouchableOpacity
-                key={mode}
-                style={styles.modeOption}
-                onPress={() => { setGameMode(mode); setShowModeSelector(false); handleClear(); }}
-              >
-                <Text style={styles.modeOptionText}>
-                  {mode === "play" ? "Play (Learn Letters)" : mode === "akshara" ? "Akshara Mode" : "Ottakshara Mode"}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* Word Display */}
-        {gameMode !== "play" && (
-          <View style={styles.wordDisplay}>
-            <Text style={styles.wordText}>{currentWord || "Tap letters to type..."}</Text>
-          </View>
-        )}
-
-        {/* Type Grid */}
-        <View style={[styles.gridContainer, { width: cardSize }]}>
-          <View style={styles.swaraRow}>
-            {TOP_SWARAS.map((s, i) => renderSwaraButton(s, `top-${i}`))}
-          </View>
-
-          <View style={styles.middleSection}>
-            <View style={styles.swaraColumn}>
-              {LEFT_SWARAS.map((s, i) => renderSwaraButton(s, `left-${i}`))}
-            </View>
-            {renderConsonantGrid()}
-            <View style={styles.swaraColumn}>
-              {RIGHT_SWARAS.map((s, i) => renderSwaraButton(s, `right-${i}`))}
-            </View>
-          </View>
-
-          <View style={styles.swaraRow}>
-            {BOTTOM_SWARAS.map((s, i) => renderSwaraButton(s, `bottom-${i}`))}
-          </View>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header narrative */}
+        <View style={styles.heroHeader}>
+          <Text style={styles.heroTitle}>Gundana Yatre</Text>
+          <Text style={styles.heroSub}>Journey to Ajji's Village · ಗುಂಡನ ಯಾತ್ರೆ</Text>
         </View>
 
-        {/* Action Buttons */}
-        {gameMode !== "play" && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleBackspace}>
-              <Text style={styles.actionButtonText}>← Back</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handleClear}>
-              <Text style={styles.actionButtonText}>Clear</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.submitButton]}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.actionButtonText}>Submit</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* Companion widget */}
+        <GundaCompanion
+          gundaState={progress.gundaState}
+          completedLevels={progress.completedLevels}
+          totalCoins={progress.totalCoins}
+        />
 
-        {/* Instructions */}
-        <View style={styles.instructions}>
-          <Text style={styles.instructionText}>
-            {gameMode === "play"
-              ? "Listen and learn each Kannada letter."
-              : gameMode === "akshara"
-              ? "Tap consonants to add them. Tap vowels to add pure vowels."
-              : "Tap consonants, then a vowel to complete the akshara. Example: ಕ + ಯ + ೋ = ಕ್ಯೋ"}
-          </Text>
-        </View>
+        {/* Phase banners + level cards */}
+        {LEVEL_CONFIGS.map((config, idx) => {
+          const isCompleted = progress.completedLevels.includes(config.level)
+          const unlocked = isLevelUnlocked(config.level, progress.completedLevels)
+          const isCurrent = !isCompleted && unlocked
+          const isLocked = !unlocked
 
-        {/* Words Found */}
-        {gameMode !== "play" && wordsFound.length > 0 && (
-          <View style={styles.wordsFound}>
-            <Text style={styles.wordsFoundTitle}>Words Found: {wordsFound.length}</Text>
-            <View style={styles.wordsList}>
-              {wordsFound.map((word, idx) => (
-                <View key={idx} style={styles.wordBadge}>
-                  <Text style={styles.wordBadgeText}>{word}</Text>
+          // Phase banner
+          const showPhaseBanner =
+            idx === 0 ||
+            LEVEL_CONFIGS[idx - 1].phase !== config.phase
+
+          return (
+            <View key={config.level}>
+              {showPhaseBanner && (
+                <View style={styles.phaseBanner}>
+                  <Text style={styles.phaseBannerText}>
+                    {config.phase === 1
+                      ? "Phase 1: The Egg"
+                      : config.phase === 2
+                      ? "Phase 2: The Bond"
+                      : "Phase 3: The Journey"}
+                  </Text>
+                  <Text style={styles.phaseBannerSub}>
+                    {config.phase === 1
+                      ? "Levels 1–5 · Egg warms, Gubbi hatches"
+                      : config.phase === 2
+                      ? "Levels 6–10 · Raising Gubbi, blue wings"
+                      : "Levels 11–15 · Gubbi takes wing, Ajji's village"}
+                  </Text>
                 </View>
-              ))}
+              )}
+
+              {/* Path connector */}
+              {idx > 0 && (
+                <View style={styles.connector}>
+                  <View
+                    style={[
+                      styles.connectorLine,
+                      isCompleted && styles.connectorDone,
+                    ]}
+                  />
+                </View>
+              )}
+
+              {/* Level Card */}
+              <TouchableOpacity
+                style={[
+                  styles.card,
+                  isCompleted && styles.cardCompleted,
+                  isCurrent && styles.cardCurrent,
+                  isLocked && styles.cardLocked,
+                  config.milestone && styles.cardMilestone,
+                ]}
+                onPress={() => handleLevelPress(config.level)}
+                activeOpacity={isLocked ? 1 : 0.8}
+                disabled={isLocked}
+              >
+                {/* Left: status icon */}
+                <View style={styles.cardStatus}>
+                  {isCompleted ? (
+                    <View style={styles.statusBadgeCompleted}>
+                      <Text style={styles.statusIcon}>✓</Text>
+                    </View>
+                  ) : isCurrent ? (
+                    <View style={styles.statusBadgeCurrent}>
+                      <Text style={styles.statusIcon}>▶</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.statusBadgeLocked}>
+                      <Text style={styles.statusIcon}>🔒</Text>
+                    </View>
+                  )}
+                </View>
+
+                {/* Center: info */}
+                <View style={styles.cardInfo}>
+                  <View style={styles.cardTitleRow}>
+                    <Text style={[styles.cardLetter, isLocked && styles.textDim]}>
+                      {config.letter}
+                    </Text>
+                    {config.milestone && (
+                      <View style={styles.milestoneBadge}>
+                        <Text style={styles.milestoneBadgeText}>★ Milestone</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.cardChapter, isLocked && styles.textDim]}>
+                    {isLocked ? `Complete Level ${config.level - 1} to unlock` : config.chapter}
+                  </Text>
+                  {!isLocked && (
+                    <Text style={styles.cardTopics}>{config.topics}</Text>
+                  )}
+                </View>
+
+                {/* Right: level number */}
+                <View style={styles.cardLevelNum}>
+                  <Text style={[styles.levelNumText, isLocked && styles.textDim]}>
+                    {config.level}
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.scoreText}>Score: {score}</Text>
-          </View>
-        )}
+          )
+        })}
+
+        <View style={styles.bottomPad} />
       </ScrollView>
+
+      {/* Ajji's letter modal */}
+      {showAjjiLetter && (
+        <AjjiLetter
+          visible={true}
+          milestone={showAjjiLetter}
+          onClose={handleAjjiLetterClose}
+        />
+      )}
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#111827" },
-  scrollView: { flex: 1 },
-  scrollContent: { alignItems: "center", paddingVertical: 16, paddingHorizontal: 16 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#fff", marginBottom: 16, textAlign: "center" },
-  modeSelector: {
-    flexDirection: "row", alignItems: "center", backgroundColor: "#4F46E5",
-    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginBottom: 12, gap: 8,
+  scroll: { flex: 1 },
+  scrollContent: { paddingTop: 0, paddingBottom: 32 },
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { color: "#9CA3AF", fontSize: 16 },
+
+  heroHeader: {
+    alignItems: "center",
+    paddingVertical: 24,
+    paddingHorizontal: 24,
+    backgroundColor: "#1F2937",
+    marginBottom: 12,
   },
-  modeSelectorText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  modeDropdown: { backgroundColor: "#1F2937", borderRadius: 8, marginBottom: 12, overflow: "hidden" },
-  modeOption: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#374151" },
-  modeOptionText: { color: "#fff", fontSize: 14 },
-  wordDisplay: {
-    width: "100%", backgroundColor: "rgba(0,128,128,0.3)", borderWidth: 2,
-    borderColor: "#000", borderRadius: 8, padding: 12, marginBottom: 12, minHeight: 50,
+  heroTitle: {
+    color: "#F9FAFB",
+    fontSize: 26,
+    fontWeight: "bold",
+    textAlign: "center",
   },
-  wordText: { fontSize: 24, fontWeight: "bold", color: "#fff", textAlign: "center" },
-  gridContainer: {
-    alignItems: "center", backgroundColor: "#1F2937", borderRadius: 16, padding: 12, marginBottom: 16,
+  heroSub: {
+    color: "#8B5CF6",
+    fontSize: 14,
+    marginTop: 4,
+    fontWeight: "600",
+    letterSpacing: 0.5,
   },
-  swaraRow: { flexDirection: "row", justifyContent: "center", gap: 6, marginVertical: 6 },
-  swaraColumn: { justifyContent: "center", gap: 6 },
-  middleSection: { flexDirection: "row", alignItems: "center", gap: 8 },
-  swaraButton: {
-    backgroundColor: "#FEF3C7", borderRadius: 6, justifyContent: "center",
-    alignItems: "center", borderWidth: 1, borderColor: "#9CA3AF",
+
+  phaseBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#1E1B4B",
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: "#8B5CF6",
   },
-  swaraText: { color: "#1F2937", fontWeight: "bold" },
-  consonantGrid: {
-    flexDirection: "column", justifyContent: "center", backgroundColor: "#E5E7EB",
-    borderRadius: 10, padding: 4, gap: 2,
+  phaseBannerText: {
+    color: "#C4B5FD",
+    fontSize: 14,
+    fontWeight: "700",
   },
-  consonantRow: { flexDirection: "row", justifyContent: "center", gap: 2 },
-  consonantTile: {
-    backgroundColor: "#fff", borderRadius: 6, justifyContent: "center",
-    alignItems: "center", borderWidth: 1, borderColor: "#D1D5DB",
+  phaseBannerSub: {
+    color: "#7C3AED",
+    fontSize: 11,
+    marginTop: 2,
   },
-  consonantText: { color: "#1F2937", fontWeight: "bold" },
-  actionButtons: { flexDirection: "row", gap: 10, marginBottom: 16 },
-  actionButton: {
-    backgroundColor: "#374151", paddingHorizontal: 16, paddingVertical: 10,
-    borderRadius: 8, borderWidth: 2, borderColor: "#1F2937",
+
+  connector: { alignItems: "center", height: 24, justifyContent: "center" },
+  connectorLine: {
+    width: 2,
+    height: 20,
+    backgroundColor: "#374151",
+    borderRadius: 1,
   },
-  submitButton: { backgroundColor: "#2563EB" },
-  actionButtonText: { color: "#fff", fontSize: 14, fontWeight: "600" },
-  instructions: {
-    backgroundColor: "#1F2937", borderRadius: 8, padding: 12, marginBottom: 16, width: "100%",
+  connectorDone: { backgroundColor: "#10B981" },
+
+  card: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    backgroundColor: "#1F2937",
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 2,
+    borderColor: "#374151",
+    gap: 12,
   },
-  instructionText: { color: "#9CA3AF", fontSize: 12, textAlign: "center" },
-  wordsFound: {
-    backgroundColor: "#14532D", borderRadius: 12, padding: 16, width: "100%",
-    borderWidth: 2, borderColor: "#22C55E",
+  cardCompleted: {
+    borderColor: "#10B981",
+    backgroundColor: "#022C22",
   },
-  wordsFoundTitle: { color: "#fff", fontSize: 14, fontWeight: "bold", textAlign: "center", marginBottom: 8 },
-  wordsList: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6, marginBottom: 8 },
-  wordBadge: {
-    backgroundColor: "#fff", borderWidth: 2, borderColor: "#22C55E",
-    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+  cardCurrent: {
+    borderColor: "#8B5CF6",
+    backgroundColor: "#1E1B4B",
   },
-  wordBadgeText: { color: "#166534", fontSize: 14, fontWeight: "600" },
-  scoreText: { color: "#86EFAC", fontSize: 14, fontWeight: "bold", textAlign: "center" },
-});
+  cardLocked: {
+    opacity: 0.6,
+  },
+  cardMilestone: {
+    borderColor: "#F59E0B",
+  },
+
+  cardStatus: { width: 40, alignItems: "center" },
+  statusBadgeCompleted: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#10B981",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusBadgeCurrent: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#8B5CF6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusBadgeLocked: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#374151",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  statusIcon: { fontSize: 16 },
+
+  cardInfo: { flex: 1, gap: 2 },
+  cardTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  cardLetter: {
+    color: "#F9FAFB",
+    fontSize: 24,
+    fontWeight: "bold",
+    lineHeight: 28,
+  },
+  milestoneBadge: {
+    backgroundColor: "#78350F",
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  milestoneBadgeText: {
+    color: "#FCD34D",
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  cardChapter: {
+    color: "#F9FAFB",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  cardTopics: {
+    color: "#6B7280",
+    fontSize: 11,
+    marginTop: 1,
+  },
+
+  cardLevelNum: {
+    width: 32,
+    alignItems: "center",
+  },
+  levelNumText: {
+    color: "#4B5563",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  textDim: { color: "#4B5563" },
+  bottomPad: { height: 24 },
+})

@@ -1,0 +1,73 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Blue Wings — 🐦 Milestone",
+        "description": "Nine letters learned. Gubbi has been growing with every word.\n\nThey emerge from dense forest into a sun-drenched farm clearing. Cows, goats, chickens everywhere. Gubbi runs toward them — and in the morning light, her wings catch the sun: BLUE. Electric, iridescent Neelakantha blue. The farm animals bow their heads. Arjun arrives from a different path and sees Gubbi's wings. \"Okay,\" he says quietly. \"Race is on.\"",
+        "videoUrl": null,
+        "duration": "45 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-10/dreamy.png",
+        "question": "They reached the farm! Animals everywhere! Do you want to be the richest person in the world?",
+        "options": ["Yes!", "Of course!", "Maybe later"],
+        "correct_answer": ["Yes!", "Of course!", "Maybe later"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-10/richhome.png",
+        "question": "The boy now has a big house, car, and beautiful things. What do we call such a life in Kannada?",
+        "options": ["ಐಶಾರಾಮಿ", "ಐವತ್ತು", "ಐನೂರು", "ಆಕಾಶ"],
+        "correct_answer": "ಐಶಾರಾಮಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-10/fifty.png",
+        "question": "The boy learned a new number called fifty! What is 'fifty' in Kannada?",
+        "options": ["ಐವತ್ತು", "ಐನೂರು", "ಐಶಾರಾಮಿ", "ಹತ್ತು"],
+        "correct_answer": "ಐವತ್ತು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-10/500.png",
+        "question": "Soon, he earned five hundred coins! What is 'five hundred' in Kannada?",
+        "options": ["ಐವತ್ತು", "ಐಶಾರಾಮಿ", "ಐನೂರು", "ಹತ್ತು"],
+        "correct_answer": "ಐನೂರು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "🎉 10 levels done! Gubbi's feathers turned bright blue! The race to the summit is on!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 10
+    }
+  ]
+}

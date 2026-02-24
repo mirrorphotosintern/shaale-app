@@ -1,0 +1,99 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Hatching — 🥚 Milestone",
+        "description": "Four letters learned. The egg has been getting warmer with every word.\n\nGunda reaches a sunlit clearing — and the egg suddenly shakes violently in his hands. Cracks appear. Golden light spills through. A tiny beak. Then Gubbi tumbles into his palms, dull brown and blinking for the first time. On the far trail: Arjun watches with his crow Kaage, gives a small nod, and keeps climbing.",
+        "videoUrl": null,
+        "duration": "45 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-5/screen-5.png",
+        "question": "The egg is glowing! Meanwhile, girls love wearing rings. Do you like them too?",
+        "options": ["Yessss!", "No, I don't like them!"],
+        "correct_answer": ["Yessss!", "No, I don't like them!"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do we call the ring that girls wear on their finger?",
+        "options": ["ಉಡುಪು", "ಉಸಿರು", "ಉಂಗುರ", "ಮನೆ"],
+        "correct_answer": "ಉಂಗುರ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-5/screen-6.png",
+        "question": "Mom wears her favorite clothes. What do we call such clothes in Kannada?",
+        "options": ["ಉಡುಪು", "ಹಣ್ಣು", "ಕುರ್ಚಿ", "ಉಂಗುರ"],
+        "correct_answer": "ಉಡುಪು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is 'breathe' called in Kannada?",
+        "options": ["ಮನೆ", "ಹಣ್ಣು", "ಕುರ್ಚಿ", "ಉಸಿರು"],
+        "correct_answer": "ಉಸಿರು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-5/screen-6.png",
+        "question": "Whose clothes and ring does the girl love to wear?",
+        "options": ["ಅಳಿಲು", "ಅಜ್ಜಿ", "ಅಮ್ಮ", "ಅಣ್ಣ"],
+        "correct_answer": "ಅಮ್ಮ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "must",
+      "type": "image-answer-quiz",
+      "content": {
+        "question": "Which of these shows ಈಶ್ವರ (Lord Shiva)?",
+        "options": [
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/butterfly.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/squirrel.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-4/eeti-shiva.png"
+        ],
+        "correct_answer": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-4/eeti-shiva.png"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 7,
+      "condition": "finish",
+      "type": "text",
+      "content": "🎉 Five letters done! THE EGG HATCHES! Baby Gubbi emerges and chirps at Gunda for the first time!",
+      "animation": "fade-out",
+      "button": "Meet Gubbi!",
+      "coin": 5
+    }
+  ]
+}

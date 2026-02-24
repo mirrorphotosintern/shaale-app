@@ -1,0 +1,71 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Map Thief",
+        "description": "Gunda stops to check his hand-drawn map. A monkey drops from a branch, snatches it, and scurries up a tree. Gunda stares up in disbelief — tries climbing, fails. Tries English, monkey laughs.\n\nHe tries Kannada words. The monkey pauses, tilts its head, impressed... and drops the map.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/ant.png",
+        "question": "A cheeky monkey stole Gunda's map! Meanwhile — which animal do we see here?",
+        "options": ["Ant", "Mouse", "Lion", "Tiger"],
+        "correct_answer": "Ant"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do we call an Ant in Kannada?",
+        "options": ["ಇರುವೆ", "ಇವತ್ತು", "ಇದೆ", "ಇಲಿ"],
+        "correct_answer": "ಇರುವೆ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do we call 'today' in Kannada?",
+        "options": ["ಇರುವೆ", "ಇವತ್ತು", "ಇದೆ", "ಇಲಿ"],
+        "correct_answer": "ಇವತ್ತು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png",
+        "question": "What does this image show?",
+        "options": ["ಇರುವೆ", "ಇವತ್ತು", "ಇದೆ", "ಇಲಿ"],
+        "correct_answer": "ಇಲಿ"
+      },
+      "animation": "slide-up"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "Great job! You learned three letters! Gunda said 'Illi kodu!' and the monkey returned the map!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 3
+    }
+  ]
+}

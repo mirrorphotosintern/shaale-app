@@ -1,0 +1,72 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Shelter from the Rain",
+        "description": "The sky turns grey. One raindrop, then a downpour. Gunda grabs Gubbi and runs. They find shelter under a giant taro leaf — big as a tent.\n\nThey sit watching the rain fall. Gubbi shakes tiny feathers dry. Using Kannada weather words, Gunda reads the storm and knows how long to wait. Gubbi grows two tiny wing feathers. Through the trees: Arjun's campfire, one ridge over.",
+        "videoUrl": null,
+        "duration": "15 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do we call a saint or sage in Kannada?",
+        "options": ["ಋಷಿ", "ರಾಜ", "ಗುರು", "ಅಣ್ಣ"],
+        "correct_answer": "ಋಷಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-7/season.png",
+        "question": "Rain began suddenly! Gunda and Gubbi ran for shelter. This picture shows seasons. What is season called in Kannada?",
+        "options": ["ಋತು", "ಋಷಿ", "ಮಳೆ", "ಬೆಳಕು"],
+        "correct_answer": "ಋತು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-5/screen-6.png",
+        "question": "Mom wears her favorite clothes. What do we call such clothes in Kannada?",
+        "options": ["ಉಡುಪು", "ಹಣ್ಣು", "ಕುರ್ಚಿ", "ಉಂಗುರ"],
+        "correct_answer": "ಉಡುಪು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-6/ganesha.png",
+        "question": "What do we call this that gives out smoke and good smell during pooja?",
+        "options": ["ಊಟ", "ಊದುಗಡ್ಡಿ", "ಊರು", "ಅಮ್ಮ"],
+        "correct_answer": "ಊದುಗಡ್ಡಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 2 new Kannada words starting with ಋ! Gubbi got tiny wings while sheltering from the rain!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 7
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "The Last Camp",
+        "description": "The highest camp before the summit. Night. Stars are enormous up here. Gubbi mimics Gunda's stretching routine in slow motion. He raises her up through the treeline to see the summit — almost there.\n\nA deep, resonant sound drifts down on the wind. Something large up there. Gunda and Gubbi both go still. Gubbi's feathers stand on end — not in fear. In recognition.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-13/eating_hall.png",
+        "question": "Camp morning! Gunda stretches, Gubbi copies. Meanwhile — do you like going for lunch feasts?",
+        "options": ["Yes!", "Sometimes", "No"],
+        "correct_answer": ["Yes!", "Sometimes", "No"]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-13/Aurangabad.png",
+        "question": "The story started in a beautiful city. Which city?",
+        "options": ["ಔರಂಗಾಬಾದ್", "ಐಶಾರಾಮಿ", "ಓದು", "ಬೆಂಗಳೂರು"],
+        "correct_answer": "ಔರಂಗಾಬಾದ್"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-13/eating_hall.png",
+        "question": "There was a big feast in the city! What do we call such a lunch feast in Kannada?",
+        "options": ["ಔತಣ", "ಒಟ್ಟಿಗೆ", "ಹತ್ತು", "ಅಮ್ಮ"],
+        "correct_answer": "ಔತಣ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-13/Medicine.png",
+        "question": "After eating too much, my stomach started aching! I went to the doctor. What did he give me?",
+        "options": ["ಒಟ್ಟಿಗೆ", "ಹತ್ತು", "ಅಮ್ಮ", "ಔಷಧಿ"],
+        "correct_answer": "ಔಷಧಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-answer-quiz",
+      "content": {
+        "question": "Which of these shows an ಔಷಧಿ (medicine)?",
+        "options": [
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/garlic.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/syrup.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/mouse.png",
+          "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/coconut.png"
+        ],
+        "correct_answer": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/kannada-assets/images/syrup.png"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 3 new Kannada words from ಔ — ಔರಂಗಾಬಾದ್ (city), ಔತಣ (feast), ಔಷಧಿ (medicine)! Something stirs at the summit...",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 13
+    }
+  ]
+}

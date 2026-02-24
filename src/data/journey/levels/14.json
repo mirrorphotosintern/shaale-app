@@ -1,0 +1,58 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Almost",
+        "description": "Near the summit. Gubbi glides between trees — fully blue, almost glowing. Gunda is running.\n\nHe rounds a bend and almost collides with Arjun, coming from the shortcut path. Both stop, breathing hard. Arjun looks at Gubbi's wings. \"You actually made it,\" he says — genuine. They stand at the summit entrance together. \"Together?\" Gunda asks. Arjun shrugs. \"After you.\"",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "Gunda hears Ajji's voice in the wind! ಅಂ is called Anusvara. What does 'ಅಂಗಡಿ' mean?",
+        "options": ["Shop", "School", "Home", "Forest"],
+        "correct_answer": "Shop"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What do we call 'sky' in Kannada? (Hint: it has ಅಂ in it!)",
+        "options": ["ಅಂಬರ", "ಅಮ್ಮ", "ಅಣ್ಣ", "ಅಜ್ಜಿ"],
+        "correct_answer": "ಅಂಬರ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is 'ಅಂಗಳ' in English?",
+        "options": ["Courtyard", "Kitchen", "Bedroom", "Market"],
+        "correct_answer": "Courtyard"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "finish",
+      "type": "text",
+      "content": "Great! You learned the Anusvara ಅಂ! Gubbi's feathers glow brighter than ever — the summit is right there!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 14
+    }
+  ]
+}

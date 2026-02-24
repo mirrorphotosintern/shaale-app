@@ -1,0 +1,88 @@
+{
+  "screens": [
+    {
+      "screen": 0,
+      "condition": "must",
+      "type": "video",
+      "content": {
+        "title": "Bekku Appears",
+        "description": "Gubbi walks beside Gunda now, tiny and unsteady. Deeper forest — older trees, darker canopy. Suddenly Gubbi freezes.\n\nAbove them on a branch, a large forest cat (Bekku) sits perfectly still, watching. Gunda speaks respectful Kannada. Bekku's tail flicks once... then it leaps silently into the canopy. Two amber eyes still follow from above.",
+        "videoUrl": null,
+        "duration": "20 sec"
+      },
+      "animation": "fade-in"
+    },
+    {
+      "screen": 1,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-6/food.png",
+        "question": "Gubbi saw the Cat! Meanwhile, when do we usually have a big meal like this?",
+        "options": ["During lunch", "During dinner", "During festivals"],
+        "correct_answer": [
+          "During lunch",
+          "During dinner",
+          "During festivals"
+        ]
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 2,
+      "condition": "must",
+      "type": "quiz",
+      "content": {
+        "question": "What is a meal called in Kannada?",
+        "options": ["ಊಟ", "ಆಕಾಶ", "ಮನೆ", "ಊರು"],
+        "correct_answer": "ಊಟ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 3,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-6/ganesha.png",
+        "question": "Agarbatti (incense sticks) are lit during puja. What do we call them in Kannada?",
+        "options": ["ಊಟ", "ಊದುಗಡ್ಡಿ", "ಊರು", "ಅಮ್ಮ"],
+        "correct_answer": "ಊದುಗಡ್ಡಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 4,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-6/usravalli.png",
+        "question": "Which animal is seen here near the flowers?",
+        "options": ["ಊಸರವಳ್ಳಿ", "ಆನೆ", "ಅಳಿಲು", "ಮಂಡೂಕ"],
+        "correct_answer": "ಊಸರವಳ್ಳಿ"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 5,
+      "condition": "must",
+      "type": "image-question-quiz",
+      "content": {
+        "image": "https://ufmwnqllgqrfkdfahptv.supabase.co/storage/v1/object/public/journey-assets/level-6/village.png",
+        "question": "What do we call this beautiful place full of homes in Kannada?",
+        "options": ["ಊರು", "ಮನೆ", "ಪೇಟೆ", "ನಗರ"],
+        "correct_answer": "ಊರು"
+      },
+      "animation": "swipe-right"
+    },
+    {
+      "screen": 6,
+      "condition": "finish",
+      "type": "text",
+      "content": "Excellent! You learned 4 new Kannada words starting with ಊ! Gubbi's eyes opened wider — the Cat was just curious!",
+      "animation": "fade-out",
+      "button": "Finish",
+      "coin": 6
+    }
+  ]
+}
