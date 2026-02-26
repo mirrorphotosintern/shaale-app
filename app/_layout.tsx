@@ -17,6 +17,13 @@ export default function RootLayout() {
           presentation: "fullScreenModal",
         }}
       />
+      <Stack.Screen
+        name="journey/[level]/index"
+        options={{
+          headerShown: false,
+          presentation: "card",
+        }}
+      />
     </Stack>
   );
 }
