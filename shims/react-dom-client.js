@@ -1,5 +1,7 @@
-// Stub for react-dom/client — not available in React Native native builds.
-// @expo/log-box imports this for its web overlay; on native it's a no-op.
+// Stub for react-dom and react-dom/client — not available in React Native.
+// Used by @expo/log-box and @clerk/clerk-react which import web-only APIs.
 module.exports = {
   createRoot: () => ({ render: () => {} }),
+  createPortal: (children) => children,
+  flushSync: (fn) => fn(),
 };

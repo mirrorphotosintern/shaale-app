@@ -12,8 +12,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "@clerk/clerk-expo";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
+import { useSubscription } from "../../src/hooks/useSubscription";
 
 const SECTION_MARGIN = 12;
 const GRID_PADDING = 12;
@@ -128,6 +130,8 @@ function VideoSection({ section, onToggle, onVideoPress, onBingeWatch, thumbnail
 
 export default function StreamScreen() {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
+  const { isPro, presentPaywall } = useSubscription();
   const { width: screenWidth } = useWindowDimensions();
   const thumbnailWidth = Math.floor(
     (screenWidth - SECTION_MARGIN * 2 - GRID_PADDING * 2 - GRID_GAP) / 2
@@ -182,7 +186,17 @@ export default function StreamScreen() {
   }, []);
 
   const handleVideoPress = useCallback(
-    (video: StreamVideo, sectionKey: VideoCategory) => {
+    async (video: StreamVideo, sectionKey: VideoCategory) => {
+      if (video.tier === "pro") {
+        if (!isSignedIn) {
+          router.push("/sign-in");
+          return;
+        }
+        if (!isPro) {
+          await presentPaywall();
+          return;
+        }
+      }
       const section = sections.find((s) => s.key === sectionKey);
       const videoIndex = section?.videos.findIndex((v) => v.id === video.id) ?? 0;
       router.push({
@@ -197,7 +211,7 @@ export default function StreamScreen() {
         },
       });
     },
-    [router, sections]
+    [router, sections, isSignedIn, isPro, presentPaywall]
   );
 
   const handleBingeWatch = useCallback(

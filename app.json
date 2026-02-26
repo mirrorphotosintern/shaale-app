@@ -11,7 +11,9 @@
     "userInterfaceStyle": "light",
     "scheme": "shaale",
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -21,6 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ai.shaale.app",
+      "usesAppleSignIn": true,
       "buildNumber": "19",
       "infoPlist": {
         "NSAppTransportSecurity": {

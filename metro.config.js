@@ -7,7 +7,7 @@ const config = getDefaultConfig(__dirname);
 // On native builds this module doesn't exist, so we intercept the resolution
 // and point it at a no-op shim.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (moduleName === "react-dom/client") {
+  if (moduleName === "react-dom/client" || moduleName === "react-dom") {
     return {
       filePath: path.resolve(__dirname, "shims/react-dom-client.js"),
       type: "sourceFile",
