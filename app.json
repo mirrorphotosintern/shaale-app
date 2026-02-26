@@ -26,7 +26,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "ai.shaale.app",
       "usesAppleSignIn": true,
-      "buildNumber": "19",
+      "buildNumber": "21",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
