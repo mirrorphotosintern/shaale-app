@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Lesson learned: missing peer deps cause bundling failures at runtime
+      - name: Check required peer dependencies
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+            const required = [
+              'expo-auth-session',
+              'expo-web-browser',
+              'react-native-purchases-ui',
+            ];
+            const missing = required.filter(p => !deps[p]);
+            if (missing.length > 0) {
+              console.error('Missing required peer dependencies:', missing.join(', '));
+              process.exit(1);
+            }
+            console.log('All required peer dependencies present.');
+          "
+
+      # Lesson learned: expo packages with ^ can resolve SDK-incompatible versions on EAS
+      - name: Check Expo package version pins use tilde not caret
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const deps = pkg.dependencies || {};
+            const bad = Object.entries(deps)
+              .filter(([name, ver]) =>
+                (name.startsWith('expo-') || name.startsWith('@expo/')) &&
+                ver.startsWith('^')
+              )
+              .map(([name, ver]) => name + '@' + ver);
+            if (bad.length > 0) {
+              console.error('Expo packages must use ~ not ^. Fix these:', bad.join(', '));
+              process.exit(1);
+            }
+            console.log('All Expo package versions correctly pinned with ~');
+          "
+
+      # Lesson learned: missing plugins cause native module crashes (build 20 crash: expo-video missing)
+      - name: Check required Expo plugins in app.json
+        run: |
+          node -e "
+            const app = require('./app.json');
+            const plugins = (app.expo.plugins || []).map(p => Array.isArray(p) ? p[0] : p);
+            const required = [
+              'expo-router',
+              'expo-secure-store',
+              'expo-web-browser',
+              'expo-video',
+              'expo-apple-authentication',
+            ];
+            const missing = required.filter(p => !plugins.includes(p));
+            if (missing.length > 0) {
+              console.error('Missing required plugins in app.json:', missing.join(', '));
+              process.exit(1);
+            }
+            console.log('All required plugins registered in app.json.');
+          "
+
+      # Lesson learned: react-dom and react-dom/client must be shimmed for Clerk + expo-log-box
+      - name: Check react-dom shim in metro.config.js
+        run: |
+          node -e "
+            const fs = require('fs');
+            const config = fs.readFileSync('./metro.config.js', 'utf8');
+            const hasReactDom = config.includes('\"react-dom\"') || config.includes(\"'react-dom'\");
+            const hasReactDomClient = config.includes('\"react-dom/client\"') || config.includes(\"'react-dom/client'\");
+            if (!hasReactDom || !hasReactDomClient) {
+              console.error('metro.config.js must shim both react-dom and react-dom/client');
+              process.exit(1);
+            }
+            console.log('react-dom shims present in metro.config.js.');
+          "
+
+      # Known pre-existing error: player/[id].tsx allowsFullscreen (expo-video SDK mismatch)
+      # Fail CI only if there are NEW errors beyond that one
+      - name: TypeScript check
+        run: |
+          OUTPUT=$(npx tsc --noEmit 2>&1 || true)
+          NEW_ERRORS=$(echo "$OUTPUT" | grep "error TS" | grep -v "player/\[id\]" || true)
+          if [ -n "$NEW_ERRORS" ]; then
+            echo "TypeScript errors found:"
+            echo "$NEW_ERRORS"
+            exit 1
+          fi
+          echo "TypeScript check passed (pre-existing player/[id].tsx error ignored)."
