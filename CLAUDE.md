@@ -8,16 +8,17 @@ Shaale is a React Native / Expo app for learning Kannada (a South Indian languag
 - **Stream**: Video content organized by categories (rhymes, stories, numbers, letters) with binge-watch functionality
 - **Learn**: Interactive Kannada typewriter with three modes (Play, Akshara, Ottakshara) for learning letters and forming words
 
-## CRITICAL: Expo SDK 54 Only — Do NOT Upgrade
+## CRITICAL: New Architecture Must Be Disabled (iOS 26 Crash)
 
-This app MUST stay on Expo SDK 54 (`~54.0.33`) and React Native 0.81.5. **Do NOT upgrade to SDK 55 or higher.**
+This app MUST have `"newArchEnabled": false` in app.json. Without this, the app instantly crashes on iOS 26 with SIGABRT in `ObjCTurboModule::performVoidMethodInvocation` ([RN bug #54859](https://github.com/facebook/react-native/issues/54859)).
 
-SDK 55+ enables New Architecture (TurboModules) which causes an instant SIGABRT crash on iOS 26 release builds due to [React Native bug #54859](https://github.com/facebook/react-native/issues/54859). This bug wasted weeks of debugging across builds 3–22. There is no fix available upstream.
+RN 0.76+ enables New Architecture by default — including our RN 0.81.5. Simply being on an older SDK does NOT disable TurboModules.
 
-- `expo` must be `~54.0.x`
-- `react-native` must be `0.81.x`
-- Never use `expo-*` packages versioned `55.x` — those are SDK 55 packages
-- CI enforces this with a version guard
+- `"newArchEnabled": false` must be set in app.json (top-level under `expo`)
+- `patches/react-native+0.81.5.patch` patches the crash in RCTTurboModule.mm — do NOT delete
+- `expo` must be `~54.0.x`, `react-native` must be `0.81.x` (0.82+ removes old arch entirely)
+- Never use `expo-*` packages versioned `55.x`
+- CI enforces SDK version with a guard
 
 See `docs/lessons-learned.md` lesson #9 for full history.
 

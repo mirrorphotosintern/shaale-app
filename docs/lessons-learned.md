@@ -138,35 +138,39 @@ Android has a few differences from iOS that developers need to know before runni
 
 ---
 
-## 9. NEVER Upgrade Past Expo SDK 54 — TurboModule Crash on iOS 26
+## 9. TurboModule Crash on iOS 26 — New Architecture Must Be Disabled
 
-**Builds affected:** Every single build from 3 to 22. Weeks of debugging.
+**Builds affected:** Every build from 3 to 24. Weeks of debugging.
 **Symptom:** App crashes immediately on launch on iOS 26 devices. Crash log shows `EXC_CRASH (SIGABRT)` with `ObjCTurboModule::performVoidMethodInvocation` in the stack trace. Only happens in release builds, never in debug.
-**Root cause:** React Native bug [facebook/react-native#54859](https://github.com/facebook/react-native/issues/54859). Expo SDK 55 enables New Architecture (TurboModules) by default. TurboModules crash on iOS 26 in release builds. This is an upstream React Native bug with no fix available in any 0.83.x version.
+**Root cause:** React Native bug [facebook/react-native#54859](https://github.com/facebook/react-native/issues/54859). When an async void TurboModule method throws an `NSException`, the code in `RCTTurboModule.mm` re-throws it as a C++ exception inside an async dispatch block where nothing can catch it → instant SIGABRT. iOS 26 triggers this during startup.
+
+**Critical insight:** React Native 0.76+ enables New Architecture (TurboModules) by default — including RN 0.81.5 (Expo SDK 54). Simply downgrading the SDK does NOT disable TurboModules. You must explicitly set `"newArchEnabled": false`.
 
 **History of the crash:**
-- The app started on SDK 54 (RN 0.81.5) and was crashing on iOS 26 too
-- During debugging, SDK was upgraded to 55 preview.12 (RN 0.83.1) thinking it would help
-- Multiple "fix" commits were made (stripping modules, adding plugins, changing versions) — **none of them fixed it**
-- All 9 TestFlight crash logs across weeks showed the exact same crash signature
-- The fix was reverting to SDK 54 which uses the old Bridge architecture (no TurboModules)
+- Builds 3–22: Crashed on SDK 55 (RN 0.83.1) with New Arch ON by default
+- Build 23–24: Crashed on SDK 54 (RN 0.81.5) — **New Arch was still ON by default**
+- Build 25: Fixed by explicitly disabling New Arch + patching RCTTurboModule.mm
 
-**Fix:** Stay on Expo SDK 54 (`~54.0.33`, React Native 0.81.5). Do NOT upgrade to SDK 55 or higher until the React Native team fixes the TurboModule crash on iOS 26.
+**Fix (two layers):**
+1. Set `"newArchEnabled": false` in app.json (top-level under `expo`)
+2. Patch `RCTTurboModule.mm` via `patch-package` to replace `throw` with `RCTLogError` in the async void catch block (from [PR #55390](https://github.com/facebook/react-native/pull/55390))
 
 **Version pinning:**
 ```json
 "expo": "~54.0.33",
-"react-native": "0.81.5"
+"react-native": "0.81.5",
+"newArchEnabled": false  // in app.json
 ```
 
 **DO NOT:**
+- Set `"newArchEnabled": true` or remove the `false` setting
+- Upgrade `react-native` past 0.81.x (0.82+ removes old arch entirely)
 - Upgrade `expo` past 54.x
-- Upgrade `react-native` past 0.81.x
-- Add `"newArchEnabled": true` to app.json
+- Delete the `patches/react-native+0.81.5.patch` file
 - Use any `expo-*` package version that starts with `55.` (those are SDK 55 packages)
 
 **When can we upgrade?**
-- Only after React Native ships a fix for [#54859](https://github.com/facebook/react-native/issues/54859)
+- Only after React Native merges [PR #55390](https://github.com/facebook/react-native/pull/55390) into a release
 - Test on a real iOS 26 device in a RELEASE build before shipping
 - Debug builds do NOT reproduce this crash — you must test release builds
 
