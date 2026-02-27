@@ -15,7 +15,8 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-video",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      "expo-audio"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -26,7 +27,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "ai.shaale.app",
       "usesAppleSignIn": true,
-      "buildNumber": "21",
+      "buildNumber": "23",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true

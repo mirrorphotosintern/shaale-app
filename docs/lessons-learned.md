@@ -138,7 +138,43 @@ Android has a few differences from iOS that developers need to know before runni
 
 ---
 
+## 9. NEVER Upgrade Past Expo SDK 54 — TurboModule Crash on iOS 26
+
+**Builds affected:** Every single build from 3 to 22. Weeks of debugging.
+**Symptom:** App crashes immediately on launch on iOS 26 devices. Crash log shows `EXC_CRASH (SIGABRT)` with `ObjCTurboModule::performVoidMethodInvocation` in the stack trace. Only happens in release builds, never in debug.
+**Root cause:** React Native bug [facebook/react-native#54859](https://github.com/facebook/react-native/issues/54859). Expo SDK 55 enables New Architecture (TurboModules) by default. TurboModules crash on iOS 26 in release builds. This is an upstream React Native bug with no fix available in any 0.83.x version.
+
+**History of the crash:**
+- The app started on SDK 54 (RN 0.81.5) and was crashing on iOS 26 too
+- During debugging, SDK was upgraded to 55 preview.12 (RN 0.83.1) thinking it would help
+- Multiple "fix" commits were made (stripping modules, adding plugins, changing versions) — **none of them fixed it**
+- All 9 TestFlight crash logs across weeks showed the exact same crash signature
+- The fix was reverting to SDK 54 which uses the old Bridge architecture (no TurboModules)
+
+**Fix:** Stay on Expo SDK 54 (`~54.0.33`, React Native 0.81.5). Do NOT upgrade to SDK 55 or higher until the React Native team fixes the TurboModule crash on iOS 26.
+
+**Version pinning:**
+```json
+"expo": "~54.0.33",
+"react-native": "0.81.5"
+```
+
+**DO NOT:**
+- Upgrade `expo` past 54.x
+- Upgrade `react-native` past 0.81.x
+- Add `"newArchEnabled": true` to app.json
+- Use any `expo-*` package version that starts with `55.` (those are SDK 55 packages)
+
+**When can we upgrade?**
+- Only after React Native ships a fix for [#54859](https://github.com/facebook/react-native/issues/54859)
+- Test on a real iOS 26 device in a RELEASE build before shipping
+- Debug builds do NOT reproduce this crash — you must test release builds
+
+**CI enforcement:** The CI pipeline checks that `expo` version contains `54.` and will block any PR that upgrades past SDK 54.
+
+---
+
 ## CI Enforcement
 
-All of lessons 1–4 are enforced by `.github/workflows/ci.yml` on every push and PR.
+All of lessons 1–4 and lesson 9 (SDK version guard) are enforced by `.github/workflows/ci.yml` on every push and PR.
 Run the `pre-build-check` Claude agent before every EAS build: just type `/pre-build-check` in Claude Code.

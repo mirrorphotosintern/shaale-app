@@ -24,6 +24,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # CRITICAL: Expo SDK must stay on 54. SDK 55 uses New Architecture (TurboModules)
+      # which crashes on iOS 26 release builds (React Native bug #54859).
+      # See docs/lessons-learned.md lesson #9.
+      - name: Check Expo SDK version is 54
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const expoVer = pkg.dependencies.expo || '';
+            if (!expoVer.includes('54.')) {
+              console.error('BLOCKED: Expo SDK must be 54.x. Found: ' + expoVer);
+              console.error('SDK 55+ uses New Architecture / TurboModules which crashes on iOS 26.');
+              console.error('See docs/lessons-learned.md lesson #9.');
+              process.exit(1);
+            }
+            console.log('Expo SDK version OK: ' + expoVer);
+          "
+
       # Lesson learned: missing peer deps cause bundling failures at runtime
       - name: Check required peer dependencies
         run: |
@@ -74,6 +91,7 @@ jobs:
               'expo-web-browser',
               'expo-video',
               'expo-apple-authentication',
+              'expo-audio',
             ];
             const missing = required.filter(p => !plugins.includes(p));
             if (missing.length > 0) {

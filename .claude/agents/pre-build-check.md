@@ -10,6 +10,11 @@ Run ALL of the following checks and report a clear pass/fail for each.
 
 ---
 
+## Check 0 — Expo SDK version (CRITICAL)
+Read `package.json`. The `expo` dependency MUST be `~54.0.x`. If it is 55.x or higher, this is an IMMEDIATE FAIL. SDK 55+ uses New Architecture (TurboModules) which crashes on iOS 26 release builds (React Native bug #54859). Also verify `react-native` is `0.81.x`. Also verify no `expo-*` package is versioned `55.x` or higher.
+
+FAIL if expo is not 54.x. This is the single most important check.
+
 ## Check 1 — TypeScript errors
 Run `npx tsc --noEmit` and report any errors EXCEPT the known pre-existing error in `player/[id].tsx` (allowsFullscreen prop). Any other error is a FAIL.
 
@@ -59,6 +64,7 @@ Print a summary table:
 
 | Check | Status | Notes |
 |-------|--------|-------|
+| SDK version (54.x) | ✅ PASS / ❌ FAIL | ... |
 | TypeScript | ✅ PASS / ❌ FAIL | ... |
 | Plugin registration | ✅ PASS / ❌ FAIL | ... |
 | Version pins | ✅ PASS / ❌ FAIL | ... |

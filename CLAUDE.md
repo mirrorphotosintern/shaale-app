@@ -8,6 +8,19 @@ Shaale is a React Native / Expo app for learning Kannada (a South Indian languag
 - **Stream**: Video content organized by categories (rhymes, stories, numbers, letters) with binge-watch functionality
 - **Learn**: Interactive Kannada typewriter with three modes (Play, Akshara, Ottakshara) for learning letters and forming words
 
+## CRITICAL: Expo SDK 54 Only — Do NOT Upgrade
+
+This app MUST stay on Expo SDK 54 (`~54.0.33`) and React Native 0.81.5. **Do NOT upgrade to SDK 55 or higher.**
+
+SDK 55+ enables New Architecture (TurboModules) which causes an instant SIGABRT crash on iOS 26 release builds due to [React Native bug #54859](https://github.com/facebook/react-native/issues/54859). This bug wasted weeks of debugging across builds 3–22. There is no fix available upstream.
+
+- `expo` must be `~54.0.x`
+- `react-native` must be `0.81.x`
+- Never use `expo-*` packages versioned `55.x` — those are SDK 55 packages
+- CI enforces this with a version guard
+
+See `docs/lessons-learned.md` lesson #9 for full history.
+
 ## Development Commands
 
 ```bash
