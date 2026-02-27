@@ -1,3 +1,27 @@
+diff --git a/node_modules/react-native/React/CxxModule/RCTNativeModule.mm b/node_modules/react-native/React/CxxModule/RCTNativeModule.mm
+index 6150f31..1b9547b 100644
+--- a/node_modules/react-native/React/CxxModule/RCTNativeModule.mm
++++ b/node_modules/react-native/React/CxxModule/RCTNativeModule.mm
+@@ -212,9 +212,17 @@ static MethodCallResult invokeInner(
+       BridgeNativeModulePerfLogger::asyncMethodCallExecutionFail(moduleName, methodName, (int32_t)callId);
+     }
+ 
+-    // Pass on JS exceptions
++    // Pass on JS exceptions — but only rethrow in sync context.
++    // In async dispatch blocks, nothing can catch a rethrown NSException,
++    // causing an immediate SIGABRT. Log instead.
++    // Fix for iOS 26 crash: https://github.com/facebook/react-native/issues/54859
+     if ([exception.name hasPrefix:RCTFatalExceptionName]) {
+-      @throw exception;
++      if (context == Sync) {
++        @throw exception;
++      } else {
++        RCTLogError(@"Fatal JS exception in async native module call: %@", exception);
++        return std::nullopt;
++      }
+     }
+ 
+ #if RCT_DEBUG
 diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
 index 2a67797..256ee31 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios/ReactCommon/RCTTurboModule.mm
