@@ -9,6 +9,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": false,
     "scheme": "shaale",
     "plugins": [
       "expo-router",
@@ -16,7 +17,8 @@
       "expo-web-browser",
       "expo-video",
       "expo-apple-authentication",
-      "expo-audio"
+      "expo-audio",
+      "expo-build-properties"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -27,7 +29,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "ai.shaale.app",
       "usesAppleSignIn": true,
-      "buildNumber": "23",
+      "buildNumber": "24",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
