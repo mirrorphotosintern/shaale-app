@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useAuth, useUser } from "@clerk/clerk-expo";
+import { useAuth, useUser } from "../../src/hooks/useAuthSafe";
 
 function HeaderRight() {
   const router = useRouter();

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "../../src/hooks/useAuthSafe";
 import { listVideosByCategory } from "../../src/services/videos";
 import { StreamVideo, VideoCategory, SectionState } from "../../src/types/videos";
 import { useSubscription } from "../../src/hooks/useSubscription";

@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 import { Stack } from "expo-router";
-import { ClerkProvider, ClerkLoaded, useAuth } from "@clerk/clerk-expo";
+import { ClerkProvider, ClerkLoaded } from "@clerk/clerk-expo";
 import * as SecureStore from "expo-secure-store";
 import { configurePurchases, identifyUser } from "../src/services/purchases";
+import { useAuth, setAuthEnabled } from "../src/hooks/useAuthSafe";
 
 const CLERK_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+const AUTH_ENABLED = !!CLERK_KEY && CLERK_KEY.startsWith("pk_");
+setAuthEnabled(AUTH_ENABLED);
 
 const tokenCache = {
   getToken: (key: string) => SecureStore.getItemAsync(key),

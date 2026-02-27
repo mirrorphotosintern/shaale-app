@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useAuth } from "@clerk/clerk-expo";
+import { useAuth } from "./useAuthSafe";
 import { getCustomerInfo, presentPaywall } from "../services/purchases";
 
 export function useSubscription() {
